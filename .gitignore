@@ -1,5 +1,8 @@
 node_modules/
-.next/
+.next/cache
+.next/*
+!.next/standalone
+!.next/static
 .env.local
 .env
 data/

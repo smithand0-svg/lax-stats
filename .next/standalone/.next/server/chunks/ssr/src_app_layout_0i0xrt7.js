@@ -1,0 +1,3 @@
+module.exports=[29735,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"en",className:"h-full antialiased",children:(0,b.jsx)("body",{className:"min-h-full flex flex-col",children:a})})},"metadata",0,{title:"SJJ Lacrosse Stats",description:"St. John's Jesuit Lacrosse historical stats"}])},81967,function(a){a.n(a.i(29735))}];
+
+//# sourceMappingURL=src_app_layout_0i0xrt7.js.map
