@@ -1,5 +1,6 @@
 const { pool } = require('./db');
 const { matchPlayer, MATCH } = require('./playerMatcher');
+const { matchOpponent, MATCH: OPPONENT_MATCH } = require('./opponentMatcher');
 const { parseHudlCsv, splitName } = require('./hudlParser');
 
 /**
@@ -37,6 +38,8 @@ async function previewImport(teamId, csvText, Papa) {
 
 /**
  * PHASE 2 — Commit an import. Everything happens in one transaction:
+ *   - resolve the opponent name to its canonical spelling (creating a new
+ *     `opponents` row if it's genuinely new)
  *   - create or reuse the game record
  *   - resolve every row to a concrete player_id (creating new players /
  *     new aliases as directed by `resolutions`)
@@ -56,7 +59,35 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
   try {
     await client.query('BEGIN');
 
-    // 1. Create or reuse the game.
+    // 1. Resolve the opponent to its canonical spelling. The admin-import
+    // picker (OpponentPicker) is just a typing aid — this is the actual
+    // source of truth, re-checked fresh against the DB inside the same
+    // transaction as the write, so games.opponent always ends up as the
+    // one canonical name for a given opponent (never a stray alias
+    // spelling), and a genuinely new opponent gets a real `opponents` row
+    // so it's searchable/matchable on the next import too.
+    const { rows: existingOpponents } = await client.query(
+      'SELECT id, name FROM opponents WHERE team_id = $1',
+      [gameMeta.teamId]
+    );
+    const { rows: existingOpponentAliases } = await client.query(
+      `SELECT oa.opponent_id AS "opponentId", oa.alias_name AS "aliasName"
+       FROM opponent_aliases oa JOIN opponents o ON o.id = oa.opponent_id WHERE o.team_id = $1`,
+      [gameMeta.teamId]
+    );
+    const opponentMatch = matchOpponent(gameMeta.opponent, existingOpponents, existingOpponentAliases);
+    const canonicalOpponent = opponentMatch.canonicalName;
+    if (!canonicalOpponent) {
+      throw new Error('Opponent is required.');
+    }
+    if (opponentMatch.status === OPPONENT_MATCH.NEW) {
+      await client.query(
+        `INSERT INTO opponents (team_id, name) VALUES ($1, $2) ON CONFLICT (team_id, name) DO NOTHING`,
+        [gameMeta.teamId, canonicalOpponent]
+      );
+    }
+
+    // 2. Create or reuse the game.
     let gameId = gameMeta.gameId;
     if (gameId) {
       await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
@@ -64,12 +95,12 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
       const gameResult = await client.query(
         `INSERT INTO games (team_id, opponent, game_date, season_year, game_type, round, import_source)
          VALUES ($1, $2, $3, $4, $5, $6, 'hudl') RETURNING id`,
-        [gameMeta.teamId, gameMeta.opponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null]
+        [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null]
       );
       gameId = gameResult.rows[0].id;
     }
 
-    // 2. Resolve every row to a concrete player_id.
+    // 3. Resolve every row to a concrete player_id.
     const resolvedRows = [];
     for (let i = 0; i < previewRows.length; i++) {
       const row = previewRows[i];
@@ -105,7 +136,7 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
       resolvedRows.push({ ...row, playerId });
     }
 
-    // 3. Replace-by-game: wipe existing stat lines for this game, then insert fresh.
+    // 4. Replace-by-game: wipe existing stat lines for this game, then insert fresh.
     await client.query('DELETE FROM game_stat_lines WHERE game_id = $1', [gameId]);
 
     for (const row of resolvedRows) {
@@ -125,7 +156,7 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
       );
     }
 
-    // 4. Audit log.
+    // 5. Audit log.
     await client.query(
       `INSERT INTO import_batches (team_id, game_id, file_name, row_count, status) VALUES ($1,$2,$3,$4,'success')`,
       [gameMeta.teamId, gameId, fileName || null, resolvedRows.length]

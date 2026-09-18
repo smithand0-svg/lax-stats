@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BASE_PATH } from '@/lib/basePath';
+import OpponentPicker from '@/components/OpponentPicker';
 
 const STATUS_LABELS = {
   exact: { label: 'Matched', color: 'bg-green-100 text-green-800' },
@@ -91,11 +92,10 @@ export default function ImportPage() {
       {status !== 'done' && (
         <div className="space-y-4 mb-8">
           <div className="grid grid-cols-2 gap-4">
-            <input
-              className="border rounded px-3 py-2"
-              placeholder="Opponent"
+            <OpponentPicker
+              className="border rounded px-3 py-2 w-full"
               value={gameMeta.opponent}
-              onChange={(e) => setGameMeta({ ...gameMeta, opponent: e.target.value })}
+              onChange={(opponent) => setGameMeta({ ...gameMeta, opponent })}
             />
             <input
               className="border rounded px-3 py-2"

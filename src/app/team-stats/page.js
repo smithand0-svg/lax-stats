@@ -11,11 +11,10 @@ export const dynamic = 'force-dynamic';
 // but NOT here, since there's no historical per-game depth for them
 // at the team level (a future addition, not an oversight).
 //
-// Points isn't a stored column at the game-line level — it's derived
-// (goals + assists) after the query, same convention as individual
-// player stats.
-const SQL_STAT_KEYS = ['goals', 'assists', 'goals_against'];
-
+// Points isn't a stored column — it's derived (goals + assists) after
+// the query, same convention as individual player stats. It's null on
+// a given game whenever either component is null, same NULL-means-
+// unknown handling as every other stat here.
 const DISPLAY_STATS = [
   { key: 'points', label: 'Points' },
   { key: 'goals', label: 'Goals' },
@@ -365,21 +364,41 @@ const STATIC_SEASON_AVG_RECORDS = {
   },
 };
 
+// team_game_stats is 1:1 with games (one row per game, already team-level
+// totals) — no more summing player stat lines. Every stat column there is
+// nullable on purpose (NULL = "not tracked for this game", distinct from
+// a real 0), which matters a lot for the sparse 2002-2019 historical rows:
+// goals_against is reliably present, but assists is frequently NULL. We
+// keep that distinction all the way through instead of coercing to 0,
+// which would silently understate — or fabricate a false shutout/zero
+// record for — a game or season that was never actually tracked for that
+// stat.
 async function getTeamGameTotals(view) {
   const { rows } = await pool.query(
     `SELECT g.id, g.opponent, g.game_date, g.season_year, g.game_type,
-            ${SQL_STAT_KEYS.map((k) => `SUM(gsl.${k}) AS ${k}`).join(', ')}
+            tgs.goals, tgs.assists, tgs.goals_against
      FROM games g
-     JOIN game_stat_lines gsl ON gsl.game_id = g.id
-     WHERE ${gameTypeCondition(view, 'g')}
-     GROUP BY g.id, g.opponent, g.game_date, g.season_year, g.game_type`
+     JOIN team_game_stats tgs ON tgs.game_id = g.id
+     WHERE ${gameTypeCondition(view, 'g')}`
   );
-  return rows.map((r) => ({ ...r, points: Number(r.goals) + Number(r.assists) }));
+  return rows.map((r) => {
+    const goals = r.goals === null ? null : Number(r.goals);
+    const assists = r.assists === null ? null : Number(r.assists);
+    const goals_against = r.goals_against === null ? null : Number(r.goals_against);
+    return {
+      ...r,
+      goals,
+      assists,
+      goals_against,
+      points: goals !== null && assists !== null ? goals + assists : null,
+    };
+  });
 }
 
 function rankBoard(rows, key) {
   const fewerIsBetter = FEWER_IS_BETTER.has(key);
   const withValue = rows
+    .filter((r) => r[key] !== null && r[key] !== undefined)
     .map((r) => ({ ...r, value: Number(r[key]) }))
     .filter((r) => (fewerIsBetter ? r.value >= 0 : r.value > 0));
   withValue.sort((a, b) => (fewerIsBetter ? a.value - b.value : b.value - a.value));
@@ -443,16 +462,31 @@ export default async function TeamStatsPage({ searchParams }) {
   const staticSeason = STATIC_SEASON_RECORDS[view] || {};
   const staticSeasonAvg = STATIC_SEASON_AVG_RECORDS[view] || {};
 
-  // Season totals + games-played count, from live per-game rows.
+  // Season totals + games-played count, from live per-game rows. Tracked
+  // per-stat: each season also records how many of its games actually had
+  // a non-null value for that stat, so a season summed from partial data
+  // (e.g. a 2000s season where only some games have assists recorded)
+  // never poses as a complete total — it falls back to the curated static
+  // record for that stat instead, the same as a season with no live rows
+  // at all.
   const bySeasonMap = {};
   gameRows.forEach((g) => {
     const key = g.season_year;
     if (!bySeasonMap[key]) {
       bySeasonMap[key] = { season_year: g.season_year, gp: 0 };
-      DISPLAY_STATS.forEach((s) => (bySeasonMap[key][s.key] = 0));
+      DISPLAY_STATS.forEach((s) => {
+        bySeasonMap[key][s.key] = 0;
+        bySeasonMap[key][`${s.key}__knownGp`] = 0;
+      });
     }
     bySeasonMap[key].gp += 1;
-    DISPLAY_STATS.forEach((s) => (bySeasonMap[key][s.key] += Number(g[s.key] || 0)));
+    DISPLAY_STATS.forEach((s) => {
+      const v = g[s.key];
+      if (v !== null && v !== undefined) {
+        bySeasonMap[key][s.key] += Number(v);
+        bySeasonMap[key][`${s.key}__knownGp`] += 1;
+      }
+    });
   });
   const seasonRows = Object.values(bySeasonMap);
 
@@ -460,10 +494,13 @@ export default async function TeamStatsPage({ searchParams }) {
   const seasonBoards = {};
   const seasonAvgBoards = {};
   DISPLAY_STATS.forEach((s) => {
-    gameBoards[s.key] = rankBoard(mergeGameStatic(gameRows, staticGame[s.key], s.key), s.key);
-    seasonBoards[s.key] = rankBoard(mergeSeasonStatic(seasonRows, staticSeason[s.key], s.key), s.key);
+    const gameRowsForStat = gameRows.filter((g) => g[s.key] !== null && g[s.key] !== undefined);
+    gameBoards[s.key] = rankBoard(mergeGameStatic(gameRowsForStat, staticGame[s.key], s.key), s.key);
 
-    const liveAvgRows = seasonRows.map((r) => ({
+    const completeSeasonRows = seasonRows.filter((r) => r[`${s.key}__knownGp`] === r.gp);
+    seasonBoards[s.key] = rankBoard(mergeSeasonStatic(completeSeasonRows, staticSeason[s.key], s.key), s.key);
+
+    const liveAvgRows = completeSeasonRows.map((r) => ({
       season_year: r.season_year,
       gp: r.gp,
       total: r[s.key],
