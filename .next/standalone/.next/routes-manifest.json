@@ -104,6 +104,12 @@
       "namedRegex": "^/api/admin/logout(?:/)?$"
     },
     {
+      "page": "/api/admin/opponents",
+      "regex": "^/api/admin/opponents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/opponents(?:/)?$"
+    },
+    {
       "page": "/coaching-stats",
       "regex": "^/coaching\\-stats(?:/)?$",
       "routeKeys": {},
