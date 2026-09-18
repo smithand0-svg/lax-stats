@@ -2,7 +2,9 @@ node_modules/
 .next/cache
 .next/*
 !.next/standalone
+!.next/standalone/**
 !.next/static
+!.next/static/**
 .env.local
 .env
 data/
