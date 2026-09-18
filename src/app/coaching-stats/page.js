@@ -163,6 +163,7 @@ export default async function CoachingStatsPage({ searchParams }) {
           <Link
             key={t.key}
             href={`/coaching-stats?view=${t.key}`}
+            replace
             className={
               tab === t.key
                 ? 'text-sm px-3 py-1 rounded bg-slate-800 text-white'

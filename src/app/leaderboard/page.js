@@ -257,7 +257,7 @@ export default async function LeaderboardPage({ searchParams }) {
                   <li key={row.id} className="flex justify-between text-sm">
                     <span>
                       <span className="text-gray-400 dark:text-gray-500 w-9 inline-block">{rankLabel}.</span>{' '}
-                      <Link href={`/players/${row.id}`} className="hover:underline">
+                      <Link href={`/players/${row.id}`} replace className="hover:underline">
                         {row.first_name} {row.last_name}
                         {row.graduation_year ? ` '${String(row.graduation_year).slice(2)}` : ''}
                       </Link>
@@ -293,7 +293,7 @@ export default async function LeaderboardPage({ searchParams }) {
                   <li key={row.id} className="flex justify-between text-sm">
                     <span>
                       <span className="text-gray-400 dark:text-gray-500 w-9 inline-block">{rankLabel}.</span>{' '}
-                      <Link href={`/players/${row.id}`} className="hover:underline">
+                      <Link href={`/players/${row.id}`} replace className="hover:underline">
                         {row.first_name} {row.last_name}
                         {row.graduation_year ? ` '${String(row.graduation_year).slice(2)}` : ''}
                       </Link>

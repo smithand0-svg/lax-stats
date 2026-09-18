@@ -134,7 +134,7 @@ export default async function TeamStatsPage({ searchParams }) {
                   <li key={s.season_year} className="flex justify-between">
                     <span>
                       {rankLabel}.{' '}
-                      <Link href={`/seasons/${s.season_year}`} className="hover:underline">
+                      <Link href={`/seasons/${s.season_year}`} replace className="hover:underline">
                         {s.season_year}
                       </Link>
                     </span>

@@ -41,7 +41,7 @@ export default async function SearchPage({ searchParams }) {
       <ul className="space-y-1">
         {results.map((p) => (
           <li key={p.id}>
-            <Link href={`/players/${p.id}`} className="text-slate-800 dark:text-slate-300 underline">
+            <Link href={`/players/${p.id}`} replace className="text-slate-800 dark:text-slate-300 underline">
               {p.first_name} {p.last_name}
               {p.graduation_year ? ` '${String(p.graduation_year).slice(2)}` : ''}
             </Link>

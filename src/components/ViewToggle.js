@@ -26,6 +26,7 @@ export default function ViewToggle({ basePath, currentView, extraParams = {} }) 
           <Link
             key={v.key}
             href={`${basePath}?${params.toString()}`}
+            replace
             className={
               isActive
                 ? 'text-sm px-3 py-1 rounded bg-slate-800 text-white'

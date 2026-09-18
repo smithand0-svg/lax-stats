@@ -12,7 +12,7 @@ const HONOR_LABELS = {
 function PlayerName({ honor }) {
   if (honor.player_id) {
     return (
-      <Link href={`/players/${honor.player_id}`} className="text-slate-800 dark:text-slate-300 underline">
+      <Link href={`/players/${honor.player_id}`} replace className="text-slate-800 dark:text-slate-300 underline">
         {honor.player_name}
       </Link>
     );

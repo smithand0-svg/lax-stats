@@ -14,7 +14,7 @@ export default async function SeasonsIndexPage() {
       <ul className="space-y-1">
         {rows.map((r) => (
           <li key={r.season_year ?? 'legacy'}>
-            <Link href={`/seasons/${r.season_year ?? 'legacy'}`} className="text-slate-800 dark:text-slate-300 underline">
+            <Link href={`/seasons/${r.season_year ?? 'legacy'}`} replace className="text-slate-800 dark:text-slate-300 underline">
               {r.season_year ?? 'Legacy (undated historical records)'}
             </Link>
           </li>

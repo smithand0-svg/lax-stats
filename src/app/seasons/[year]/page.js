@@ -47,7 +47,7 @@ export default async function SeasonPage({ params, searchParams }) {
 
   return (
     <main className="max-w-4xl mx-auto p-8">
-      <Link href="/seasons" className="text-sm text-gray-500 dark:text-gray-400 underline">
+      <Link href="/seasons" replace className="text-sm text-gray-500 dark:text-gray-400 underline">
         ← All seasons
       </Link>
       <h1 className="text-3xl font-bold mt-2 mb-4">{isLegacy ? 'Legacy Records' : `${seasonYear} Season`}</h1>
@@ -70,7 +70,7 @@ export default async function SeasonPage({ params, searchParams }) {
               {rows.map((row) => (
                 <tr key={row.id} className="border-b">
                   <td className="py-2 pr-4">
-                    <Link href={`/players/${row.id}`} className="text-slate-800 dark:text-slate-300 underline">
+                    <Link href={`/players/${row.id}`} replace className="text-slate-800 dark:text-slate-300 underline">
                       {row.first_name} {row.last_name}
                     </Link>
                   </td>
