@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/andyldn/lax-stats-git/
+    - cd $DEPLOYPATH && npm install --include=dev
+    - cd $DEPLOYPATH && npm run build
+    - cd $DEPLOYPATH && rm -rf .next/standalone/public .next/standalone/.next/static
+    - cd $DEPLOYPATH && cp -r public .next/standalone/public
+    - cd $DEPLOYPATH && mkdir -p .next/standalone/.next/static && cp -r .next/static/* .next/standalone/.next/static/
