@@ -563,7 +563,7 @@ export default async function TeamStatsPage({ searchParams }) {
 
       <h2 className="text-xl font-bold mt-4 mb-4">Single Game</h2>
       <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {DISPLAY_STATS.map((stat) => (
+        {DISPLAY_STATS.filter((stat) => !(view === 'combined' && stat.key === 'goals_against')).map((stat) => (
           <div key={stat.key}>
             <h3 className="text-lg font-semibold mb-2 border-b pb-1">{stat.label}</h3>
             <ol className="space-y-1 text-sm">
