@@ -116,7 +116,9 @@ export default async function PlayerProfilePage({ params, searchParams }) {
               className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 rounded"
               title={formatHonor(h)}
             >
-              {HONOR_LABELS[h.honor_type]} ({h.honor_year})
+              {h.honor_type === 'college_commitment'
+                ? `College Commitment: ${h.school} (${h.honor_year})`
+                : `${HONOR_LABELS[h.honor_type]} (${h.honor_year})`}
             </span>
           ))}
         </div>
