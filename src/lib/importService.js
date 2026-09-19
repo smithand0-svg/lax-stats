@@ -2,6 +2,7 @@ const { pool } = require('./db');
 const { matchPlayer, MATCH } = require('./playerMatcher');
 const { matchOpponent, MATCH: OPPONENT_MATCH } = require('./opponentMatcher');
 const { parseHudlCsv, splitName } = require('./hudlParser');
+const { parseHudlTeamTotalsCsv } = require('./hudlTeamTotalsParser');
 
 /**
  * PHASE 1 — Preview an import. Read-only: touches the database only to
@@ -37,10 +38,75 @@ async function previewImport(teamId, csvText, Papa) {
 }
 
 /**
- * PHASE 2 — Commit an import. Everything happens in one transaction:
- *   - resolve the opponent name to its canonical spelling (creating a new
- *     `opponents` row if it's genuinely new)
- *   - create or reuse the game record
+ * Shared by both commit paths (individual-stats and team-stats imports):
+ * resolves the opponent to its canonical spelling (creating a new
+ * `opponents` row if genuinely new), then finds-or-creates the game.
+ *
+ * "Finds" matters here, not just "creates": if a game already exists for
+ * this team_id + opponent + game_date — e.g. the individual-stats CSV was
+ * already imported for this game, and now the team-totals CSV is being
+ * imported for the SAME game — this reuses that existing row instead of
+ * creating a second `games` row for the same real game. Without this,
+ * importing both formats for one game (which is exactly the point of
+ * having both) would silently double the game count everywhere: GP
+ * totals, season game counts, etc. This also happens to fix a pre-existing
+ * gap in the individual-stats path alone: re-importing the same game's
+ * player CSV a second time (e.g. a Hudl correction after review) used to
+ * always insert a new game row rather than reusing the first one, unless
+ * gameMeta.gameId was explicitly passed — which the UI never actually
+ * does today. Natural-key matching now makes "replace-by-game" work the
+ * way decisions.md already says it should, for both formats.
+ */
+async function resolveOpponentAndGame(client, gameMeta) {
+  const { rows: existingOpponents } = await client.query(
+    'SELECT id, name FROM opponents WHERE team_id = $1',
+    [gameMeta.teamId]
+  );
+  const { rows: existingOpponentAliases } = await client.query(
+    `SELECT oa.opponent_id AS "opponentId", oa.alias_name AS "aliasName"
+     FROM opponent_aliases oa JOIN opponents o ON o.id = oa.opponent_id WHERE o.team_id = $1`,
+    [gameMeta.teamId]
+  );
+  const opponentMatch = matchOpponent(gameMeta.opponent, existingOpponents, existingOpponentAliases);
+  const canonicalOpponent = opponentMatch.canonicalName;
+  if (!canonicalOpponent) {
+    throw new Error('Opponent is required.');
+  }
+  if (opponentMatch.status === OPPONENT_MATCH.NEW) {
+    await client.query(
+      `INSERT INTO opponents (team_id, name) VALUES ($1, $2) ON CONFLICT (team_id, name) DO NOTHING`,
+      [gameMeta.teamId, canonicalOpponent]
+    );
+  }
+
+  let gameId = gameMeta.gameId;
+  if (gameId) {
+    await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
+  } else {
+    const { rows: existingGameRows } = await client.query(
+      `SELECT id FROM games WHERE team_id = $1 AND opponent = $2 AND game_date IS NOT DISTINCT FROM $3`,
+      [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null]
+    );
+    if (existingGameRows[0]) {
+      gameId = existingGameRows[0].id;
+      await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
+    } else {
+      const gameResult = await client.query(
+        `INSERT INTO games (team_id, opponent, game_date, season_year, game_type, round, import_source)
+         VALUES ($1, $2, $3, $4, $5, $6, 'hudl') RETURNING id`,
+        [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null]
+      );
+      gameId = gameResult.rows[0].id;
+    }
+  }
+  return { gameId, canonicalOpponent };
+}
+
+/**
+ * PHASE 2 — Commit an individual-stats (per-player) import. Everything
+ * happens in one transaction:
+ *   - resolve the opponent + find-or-create the game (see
+ *     resolveOpponentAndGame)
  *   - resolve every row to a concrete player_id (creating new players /
  *     new aliases as directed by `resolutions`)
  *   - DELETE any existing stat lines for this game (replace-by-game)
@@ -59,46 +125,7 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
   try {
     await client.query('BEGIN');
 
-    // 1. Resolve the opponent to its canonical spelling. The admin-import
-    // picker (OpponentPicker) is just a typing aid — this is the actual
-    // source of truth, re-checked fresh against the DB inside the same
-    // transaction as the write, so games.opponent always ends up as the
-    // one canonical name for a given opponent (never a stray alias
-    // spelling), and a genuinely new opponent gets a real `opponents` row
-    // so it's searchable/matchable on the next import too.
-    const { rows: existingOpponents } = await client.query(
-      'SELECT id, name FROM opponents WHERE team_id = $1',
-      [gameMeta.teamId]
-    );
-    const { rows: existingOpponentAliases } = await client.query(
-      `SELECT oa.opponent_id AS "opponentId", oa.alias_name AS "aliasName"
-       FROM opponent_aliases oa JOIN opponents o ON o.id = oa.opponent_id WHERE o.team_id = $1`,
-      [gameMeta.teamId]
-    );
-    const opponentMatch = matchOpponent(gameMeta.opponent, existingOpponents, existingOpponentAliases);
-    const canonicalOpponent = opponentMatch.canonicalName;
-    if (!canonicalOpponent) {
-      throw new Error('Opponent is required.');
-    }
-    if (opponentMatch.status === OPPONENT_MATCH.NEW) {
-      await client.query(
-        `INSERT INTO opponents (team_id, name) VALUES ($1, $2) ON CONFLICT (team_id, name) DO NOTHING`,
-        [gameMeta.teamId, canonicalOpponent]
-      );
-    }
-
-    // 2. Create or reuse the game.
-    let gameId = gameMeta.gameId;
-    if (gameId) {
-      await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
-    } else {
-      const gameResult = await client.query(
-        `INSERT INTO games (team_id, opponent, game_date, season_year, game_type, round, import_source)
-         VALUES ($1, $2, $3, $4, $5, $6, 'hudl') RETURNING id`,
-        [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null]
-      );
-      gameId = gameResult.rows[0].id;
-    }
+    const { gameId } = await resolveOpponentAndGame(client, gameMeta);
 
     // 3. Resolve every row to a concrete player_id.
     const resolvedRows = [];
@@ -172,4 +199,85 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
   }
 }
 
-module.exports = { previewImport, commitImport };
+module.exports = { previewImport, commitImport, previewTeamImport, commitTeamImport };
+
+/**
+ * PHASE 1 (team-stats) — Preview a team-totals import. Pure parse, no DB
+ * access at all — there's no player matching to do, just the "Overall"
+ * row's stats to show the admin for a sanity check before committing.
+ */
+function previewTeamImport(csvText, Papa) {
+  const { stats, periodRows } = parseHudlTeamTotalsCsv(csvText, Papa);
+  return { stats, periodRows };
+}
+
+const TEAM_STATS_COLUMNS = [
+  'goals', 'assists', 'shots', 'shots_on_goal', 'shot_pct',
+  'possessions', 'attacking_possessions', 'poss_per_shot', 'poss_per_goal', 'poss_pct',
+  'ground_balls', 'successful_clears', 'failed_clears', 'clear_pct',
+  'successful_rides', 'failed_rides', 'ride_pct',
+  'faceoffs', 'faceoff_wins', 'faceoff_losses', 'faceoff_pct',
+  'turnovers', 'forced_turnovers', 'unforced_turnovers',
+  'blocks', 'caused_turnovers', 'goals_against', 'saves', 'save_pct',
+  'emo', 'emo_goals', 'emo_pct', 'man_down_defenses', 'man_down_goals_against', 'man_down_pct',
+  'penalties', 'technical_penalties', 'personal_penalties',
+];
+// Same order as TEAM_STATS_COLUMNS, in the camelCase the parser produces.
+const TEAM_STATS_FIELDS = [
+  'goals', 'assists', 'shots', 'shotsOnGoal', 'shotPct',
+  'possessions', 'attackingPossessions', 'possPerShot', 'possPerGoal', 'possPct',
+  'groundBalls', 'successfulClears', 'failedClears', 'clearPct',
+  'successfulRides', 'failedRides', 'ridePct',
+  'faceoffs', 'faceoffWins', 'faceoffLosses', 'faceoffPct',
+  'turnovers', 'forcedTurnovers', 'unforcedTurnovers',
+  'blocks', 'causedTurnovers', 'goalsAgainst', 'saves', 'savePct',
+  'emo', 'emoGoals', 'emoPct', 'manDownDefenses', 'manDownGoalsAgainst', 'manDownPct',
+  'penalties', 'technicalPenalties', 'personalPenalties',
+];
+
+/**
+ * PHASE 2 (team-stats) — Commit a team-totals import. One transaction:
+ *   - resolve the opponent + find-or-create the game (see
+ *     resolveOpponentAndGame — this is what lets an individual-stats
+ *     import and a team-stats import for the same game land on the same
+ *     `games` row instead of creating two)
+ *   - upsert the parsed stats into team_game_stats (replace-by-game,
+ *     same convention as the individual-stats path's delete-then-insert)
+ *   - log an import_batches row
+ *
+ * @param {object} gameMeta - same shape as commitImport's
+ * @param {object} stats - the `stats` object from previewTeamImport
+ * @param {string} fileName - for the import_batches audit log
+ */
+async function commitTeamImport(gameMeta, stats, fileName) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { gameId } = await resolveOpponentAndGame(client, gameMeta);
+
+    const values = TEAM_STATS_FIELDS.map((f) => (stats[f] === undefined ? null : stats[f]));
+    const placeholders = values.map((_, i) => `$${i + 3}`).join(', '); // $1 = gameId, $2 = teamId
+    const updateSet = TEAM_STATS_COLUMNS.map((c) => `${c} = EXCLUDED.${c}`).join(', ');
+
+    await client.query(
+      `INSERT INTO team_game_stats (game_id, team_id, ${TEAM_STATS_COLUMNS.join(', ')}, import_source)
+       VALUES ($1, $2, ${placeholders}, 'hudl_team_totals')
+       ON CONFLICT (game_id) DO UPDATE SET ${updateSet}, import_source = EXCLUDED.import_source`,
+      [gameId, gameMeta.teamId, ...values]
+    );
+
+    await client.query(
+      `INSERT INTO import_batches (team_id, game_id, file_name, row_count, status) VALUES ($1,$2,$3,1,'success')`,
+      [gameMeta.teamId, gameId, fileName || null]
+    );
+
+    await client.query('COMMIT');
+    return { gameId };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}

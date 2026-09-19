@@ -11,7 +11,22 @@ const STATUS_LABELS = {
   new_player: { label: 'New player?', color: 'bg-blue-100 text-blue-800' },
 };
 
+// Labels for the team-stats review table. Grouped to roughly match how
+// Hudl's own report is laid out, for a quick sanity-check scan rather than
+// a flat alphabetical dump.
+const TEAM_STAT_GROUPS = [
+  { title: 'Shooting', fields: [['goals', 'Goals'], ['assists', 'Assists'], ['shots', 'Shots'], ['shotsOnGoal', 'Shots on goal'], ['shotPct', 'Shot %']] },
+  { title: 'Possession', fields: [['possessions', 'Possessions'], ['attackingPossessions', 'Attacking poss.'], ['possPerShot', 'Poss./shot'], ['possPerGoal', 'Poss./goal'], ['possPct', 'Poss. %'], ['groundBalls', 'Ground balls']] },
+  { title: 'Clears / Rides', fields: [['successfulClears', 'Clears (succ.)'], ['failedClears', 'Clears (failed)'], ['clearPct', 'Clear %'], ['successfulRides', 'Rides (succ.)'], ['failedRides', 'Rides (failed)'], ['ridePct', 'Ride %']] },
+  { title: 'Faceoffs', fields: [['faceoffs', 'Faceoffs'], ['faceoffWins', 'Wins'], ['faceoffLosses', 'Losses'], ['faceoffPct', 'FO %']] },
+  { title: 'Turnovers / Defense', fields: [['turnovers', 'Turnovers'], ['forcedTurnovers', 'Forced'], ['unforcedTurnovers', 'Unforced'], ['blocks', 'Blocks'], ['causedTurnovers', 'Caused TOs']] },
+  { title: 'Goalie', fields: [['goalsAgainst', 'Goals against'], ['saves', 'Saves'], ['savePct', 'Save %']] },
+  { title: 'EMO / Man-Down', fields: [['emo', 'EMO chances'], ['emoGoals', 'EMO goals'], ['emoPct', 'EMO %'], ['manDownDefenses', 'Man-down chances'], ['manDownGoalsAgainst', 'Man-down GA'], ['manDownPct', 'Man-down %']] },
+  { title: 'Penalties', fields: [['penalties', 'Total'], ['technicalPenalties', 'Technical'], ['personalPenalties', 'Personal']] },
+];
+
 export default function ImportPage() {
+  const [importMode, setImportMode] = useState('individual'); // individual | game
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [resolutions, setResolutions] = useState({});
@@ -20,18 +35,32 @@ export default function ImportPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
 
+  function switchMode(mode) {
+    if (mode === importMode) return;
+    setImportMode(mode);
+    setFile(null);
+    setPreview(null);
+    setResolutions({});
+    setStatus('idle');
+    setErrorMsg('');
+    setResult(null);
+  }
+
   async function handlePreview() {
     if (!file) return;
     setStatus('previewing');
     setErrorMsg('');
     const formData = new FormData();
     formData.append('file', file);
+    const endpoint = importMode === 'game' ? 'team-preview' : 'preview';
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/import/preview`, { method: 'POST', body: formData });
+      const res = await fetch(`${BASE_PATH}/api/admin/import/${endpoint}`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setPreview(data);
-      setGameMeta((g) => ({ ...g, opponent: g.opponent || guessOpponent(data.fileName) }));
+      if (importMode === 'individual') {
+        setGameMeta((g) => ({ ...g, opponent: g.opponent || guessOpponent(data.fileName) }));
+      }
       setStatus('ready');
     } catch (err) {
       setErrorMsg(err.message);
@@ -47,15 +76,20 @@ export default function ImportPage() {
     setStatus('committing');
     setErrorMsg('');
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/import/commit`, {
+      const endpoint = importMode === 'game' ? 'team-commit' : 'commit';
+      const body =
+        importMode === 'game'
+          ? { gameMeta: { teamId: preview.teamId, ...gameMeta }, stats: preview.stats, fileName: preview.fileName }
+          : {
+              gameMeta: { teamId: preview.teamId, ...gameMeta },
+              previewRows: preview.previewRows,
+              resolutions,
+              fileName: preview.fileName,
+            };
+      const res = await fetch(`${BASE_PATH}/api/admin/import/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameMeta: { teamId: preview.teamId, ...gameMeta },
-          previewRows: preview.previewRows,
-          resolutions,
-          fileName: preview.fileName,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -68,11 +102,12 @@ export default function ImportPage() {
   }
 
   const allResolved =
-    preview &&
-    preview.previewRows.every((row, i) => {
-      if (row.match.status === 'exact' || row.match.status === 'alias') return true;
-      return !!resolutions[i];
-    });
+    importMode === 'game' ||
+    (preview &&
+      preview.previewRows.every((row, i) => {
+        if (row.match.status === 'exact' || row.match.status === 'alias') return true;
+        return !!resolutions[i];
+      }));
 
   async function handleLogout() {
     await fetch(`${BASE_PATH}/api/admin/logout`, { method: 'POST' });
@@ -87,7 +122,31 @@ export default function ImportPage() {
           Log out
         </button>
       </div>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">Upload a Hudl &quot;All Athletes — Totals&quot; CSV export.</p>
+
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => switchMode('individual')}
+          className={`px-4 py-2 rounded text-sm font-medium ${
+            importMode === 'individual' ? 'bg-slate-800 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          Individual Stats
+        </button>
+        <button
+          onClick={() => switchMode('game')}
+          className={`px-4 py-2 rounded text-sm font-medium ${
+            importMode === 'game' ? 'bg-slate-800 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          Game Stats
+        </button>
+      </div>
+
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        {importMode === 'individual'
+          ? 'Upload a Hudl "All Athletes — Totals" per-player CSV export. Writes to each player\u2019s game stat lines.'
+          : 'Upload a Hudl team-totals CSV export (the "Overall" + per-period report). Writes directly to this game\u2019s team-level stats — no player matching involved.'}
+      </p>
 
       {status !== 'done' && (
         <div className="space-y-4 mb-8">
@@ -133,9 +192,9 @@ export default function ImportPage() {
         </div>
       )}
 
-      {errorMsg && <div className="bg-red-100 text-red-800 p-3 rounded mb-4">{errorMsg}</div>}
+      {errorMsg && <div className="bg-red-100 text-red-800 p-3 rounded mb-4 whitespace-pre-wrap">{errorMsg}</div>}
 
-      {preview && status !== 'done' && (
+      {preview && status !== 'done' && importMode === 'individual' && (
         <div>
           <div className="flex justify-between items-center mb-3">
             <p>
@@ -222,10 +281,54 @@ export default function ImportPage() {
         </div>
       )}
 
+      {preview && status !== 'done' && importMode === 'game' && (
+        <div>
+          <p className="mb-4">
+            Parsed the &quot;Overall&quot; team totals{preview.periodRows?.length > 0 ? ` and ${preview.periodRows.length} period rows (not stored yet — review only)` : ''}. Check these against the export before saving.
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 mb-6">
+            {TEAM_STAT_GROUPS.map((group) => (
+              <div key={group.title}>
+                <h3 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">{group.title}</h3>
+                <table className="text-sm w-full">
+                  <tbody>
+                    {group.fields.map(([field, label]) => (
+                      <tr key={field}>
+                        <td className="text-gray-600 dark:text-gray-400 pr-2">{label}</td>
+                        <td className="font-medium text-right">
+                          {preview.stats[field] === null || preview.stats[field] === undefined
+                            ? '—'
+                            : field.toLowerCase().includes('pct')
+                            ? `${preview.stats[field]}%`
+                            : preview.stats[field]}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={handleCommit}
+            disabled={!gameMeta.opponent || status === 'committing'}
+            className="bg-green-700 text-white px-5 py-2 rounded disabled:opacity-40"
+          >
+            {status === 'committing' ? 'Saving…' : 'Confirm & save team stats'}
+          </button>
+        </div>
+      )}
+
       {status === 'done' && (
         <div className="bg-green-100 text-green-900 p-4 rounded">
           <p className="font-semibold">Saved.</p>
-          <p>{result.rowsWritten} player stat lines written to game {result.gameId}.</p>
+          <p>
+            {importMode === 'game'
+              ? `Team stats written for game ${result.gameId}.`
+              : `${result.rowsWritten} player stat lines written to game ${result.gameId}.`}
+          </p>
         </div>
       )}
     </main>

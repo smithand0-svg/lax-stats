@@ -92,6 +92,18 @@
       "namedRegex": "^/api/admin/import/preview(?:/)?$"
     },
     {
+      "page": "/api/admin/import/team-commit",
+      "regex": "^/api/admin/import/team\\-commit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/import/team\\-commit(?:/)?$"
+    },
+    {
+      "page": "/api/admin/import/team-preview",
+      "regex": "^/api/admin/import/team\\-preview(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/import/team\\-preview(?:/)?$"
+    },
+    {
       "page": "/api/admin/login",
       "regex": "^/api/admin/login(?:/)?$",
       "routeKeys": {},
