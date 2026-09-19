@@ -9,3 +9,10 @@ node_modules/
 .env
 data/
 *.log
+# Passenger writes tmp/restart.txt inside the Node.js app's Application
+# root (.next/standalone here) every time the app is restarted via
+# cPanel's Node.js Selector -- this must stay excluded even though the
+# rest of .next/standalone is deliberately un-ignored above, or every
+# restart leaves the checked-out branch dirty and blocks .cpanel.yml
+# deployment ("no uncommitted changes" requirement).
+.next/standalone/tmp/
