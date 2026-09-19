@@ -5,6 +5,19 @@ import { BASE_PATH } from '@/lib/basePath';
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
+  const isProtectedPage = pathname.startsWith('/admin');
+  const isProtectedApi = pathname.startsWith('/api/admin');
+
+  // Kill switch: while ADMIN_ENABLED isn't explicitly set to 'true' in
+  // the Node.js app's environment variables, every admin route --
+  // including the login page itself -- 404s as if it doesn't exist at
+  // all. No env var set (the default) means disabled. Toggle it back
+  // on later via the Node.js Selector's environment variables, then
+  // restart the app -- no code change or redeploy needed either way.
+  if ((isProtectedPage || isProtectedApi) && process.env.ADMIN_ENABLED !== 'true') {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   // Never protect the login page or its API — protecting it would create
   // an infinite redirect loop (redirected to login, which redirects to
   // login, ...).
@@ -12,8 +25,6 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  const isProtectedPage = pathname.startsWith('/admin');
-  const isProtectedApi = pathname.startsWith('/api/admin');
   if (!isProtectedPage && !isProtectedApi) {
     return NextResponse.next();
   }
