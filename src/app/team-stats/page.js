@@ -43,12 +43,13 @@ function resolveTeamStatsView(rawView) {
   return rawView === 'playoff' ? 'playoff' : 'combined';
 }
 
-// Minimum games played in a season for it to qualify for a Season
-// Average ranking, so one hot game early in a season can't masquerade
-// as a per-game average record. Not specified on the source sheets
-// (except one playoff footnote using the same number) — 2 is a
-// reasonable starting default, easy to adjust.
-const MIN_GP_FOR_AVERAGE = 2;
+// Minimum games played in a season for it to qualify for a Single
+// Season or Single Season Average ranking, so one hot game (or a
+// truncated/partial season) can't masquerade as a full-season record.
+// Not specified on the source sheets (except one playoff footnote
+// using the same number) — 2 is a reasonable starting default, easy
+// to adjust. Applies to both totals and averages, live and static.
+const MIN_GP_FOR_SEASON_BOARD = 2;
 
 // Playoff round values are 64/32/16/8/4/2 (games remaining), 2 = championship.
 // Named rounds match the labels already used elsewhere on the site (e.g.
@@ -413,7 +414,13 @@ function rankBoard(rows, key) {
     .filter((r) => r[key] !== null && r[key] !== undefined)
     .map((r) => ({ ...r, value: Number(r[key]) }))
     .filter((r) => (fewerIsBetter ? r.value >= 0 : r.value > 0));
-  withValue.sort((a, b) => (fewerIsBetter ? a.value - b.value : b.value - a.value));
+  withValue.sort((a, b) => {
+    const diff = fewerIsBetter ? a.value - b.value : b.value - a.value;
+    // Oldest season first when tied, matching the Leaderboard's own
+    // tie-break convention. Rows with no season_year (shouldn't happen
+    // in practice) sort last within their tie group.
+    return diff !== 0 ? diff : (a.season_year ?? Infinity) - (b.season_year ?? Infinity);
+  });
   let rank = 0;
   let lastValue = null;
   withValue.forEach((r, i) => {
@@ -427,9 +434,24 @@ function rankBoard(rows, key) {
 }
 
 function mergeGameStatic(liveRows, staticRows, key) {
-  const liveYears = new Set(liveRows.map((r) => r.season_year));
   const extra = (staticRows || [])
-    .filter((r) => !liveYears.has(r.season_year))
+    .filter((r) => {
+      // Only drop a static record when a live row demonstrably covers
+      // it: same opponent, same season, and a value that equals or
+      // exceeds the static one. A live row simply existing for that
+      // YEAR is not enough -- that was the bug: it silently dropped
+      // historical records the moment ANY live data existed for their
+      // year, whether or not it actually captured that specific game.
+      const covered = liveRows.some(
+        (live) =>
+          live.season_year === r.season_year &&
+          live.opponent === r.opponent &&
+          live[key] !== null &&
+          live[key] !== undefined &&
+          Number(live[key]) >= r.value
+      );
+      return !covered;
+    })
     .map((r, i) => ({
       id: `static-game-${key}-${i}`,
       opponent: r.opponent,
@@ -445,18 +467,18 @@ function mergeGameStatic(liveRows, staticRows, key) {
 function mergeSeasonStatic(liveRows, staticRows, key) {
   const liveYears = new Set(liveRows.map((r) => r.season_year));
   const extra = (staticRows || [])
-    .filter((r) => !liveYears.has(r.season_year))
+    .filter((r) => !liveYears.has(r.season_year) && r.gp >= MIN_GP_FOR_SEASON_BOARD)
     .map((r) => ({ season_year: r.season_year, gp: r.gp, [key]: r.value, isStatic: true }));
-  return [...liveRows, ...extra];
+  return [...liveRows.filter((r) => r.gp >= MIN_GP_FOR_SEASON_BOARD), ...extra];
 }
 
 // Average boards use a differently-shaped static source (avg + the
 // raw season total + gp, mirroring the sheet's own columns), and both
-// live and static entries are filtered by MIN_GP_FOR_AVERAGE first.
+// live and static entries are filtered by MIN_GP_FOR_SEASON_BOARD first.
 function mergeSeasonAverageStatic(liveAvgRows, staticRows, key) {
   const liveYears = new Set(liveAvgRows.map((r) => r.season_year));
   const extra = (staticRows || [])
-    .filter((r) => !liveYears.has(r.season_year) && r.gp >= MIN_GP_FOR_AVERAGE)
+    .filter((r) => !liveYears.has(r.season_year) && r.gp >= MIN_GP_FOR_SEASON_BOARD)
     .map((r) => ({
       season_year: r.season_year,
       total: r.total,
@@ -464,7 +486,7 @@ function mergeSeasonAverageStatic(liveAvgRows, staticRows, key) {
       [key]: r.avg,
       isStatic: true,
     }));
-  return [...liveAvgRows.filter((r) => r.gp >= MIN_GP_FOR_AVERAGE), ...extra];
+  return [...liveAvgRows.filter((r) => r.gp >= MIN_GP_FOR_SEASON_BOARD), ...extra];
 }
 
 export default async function TeamStatsPage({ searchParams }) {
@@ -529,6 +551,15 @@ export default async function TeamStatsPage({ searchParams }) {
   const hasAnyLiveData = gameRows.length > 0;
   const hasAnyStaticData = Object.values(staticGame).some((a) => a && a.length > 0);
 
+  // "Current season" for highlighting purposes: the most recent season
+  // year with any live game data for this view. There's no explicit
+  // finalize/advance mechanism yet (TM-17/TM-24), so this is a
+  // heuristic -- once those exist, this should read whatever they mark
+  // as the current, not-yet-finalized season instead of inferring it.
+  const currentSeasonYear = hasAnyLiveData ? Math.max(...gameRows.map((g) => g.season_year)) : null;
+  const isCurrentSeason = (year) => currentSeasonYear !== null && year === currentSeasonYear;
+  const CURRENT_SEASON_CLASS = 'bg-amber-50 dark:bg-amber-950/40 -mx-1 px-1 rounded';
+
   return (
     <main className="max-w-5xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-1">Team Stats</h1>
@@ -569,9 +600,16 @@ export default async function TeamStatsPage({ searchParams }) {
       )}
 
       {hasAnyLiveData && hasAnyStaticData && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-8">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
           Historical records shown alongside live data as they&apos;re tracked; the current season&apos;s
           in-progress totals are included and may lead a category before the season is complete.
+        </p>
+      )}
+
+      {currentSeasonYear !== null && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-8">
+          <span className={`${CURRENT_SEASON_CLASS} font-medium`}>Highlighted</span> entries are from the{' '}
+          {currentSeasonYear} season, still in progress — rankings there may shift as the season continues.
         </p>
       )}
 
@@ -585,7 +623,7 @@ export default async function TeamStatsPage({ searchParams }) {
                 const tiedCount = arr.filter((r) => r.rnk === g.rnk).length;
                 const rankLabel = tiedCount > 1 ? `T-${g.rnk}` : String(g.rnk);
                 return (
-                  <li key={g.id} className="flex justify-between">
+                  <li key={g.id} className={`flex justify-between ${isCurrentSeason(g.season_year) ? CURRENT_SEASON_CLASS : ''}`}>
                     <span>
                       {rankLabel}. vs {g.opponent}{' '}
                       <span className="text-gray-400 dark:text-gray-500 text-xs">
@@ -603,7 +641,10 @@ export default async function TeamStatsPage({ searchParams }) {
         ))}
       </div>
 
-      <h2 className="text-xl font-bold mb-4">Single Season</h2>
+      <h2 className="text-xl font-bold mb-1">Single Season</h2>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+        Minimum {MIN_GP_FOR_SEASON_BOARD} games played to qualify
+      </p>
       <div className="grid md:grid-cols-2 gap-8 mb-12">
         {DISPLAY_STATS.map((stat) => (
           <div key={stat.key}>
@@ -613,7 +654,7 @@ export default async function TeamStatsPage({ searchParams }) {
                 const tiedCount = arr.filter((r) => r.rnk === s.rnk).length;
                 const rankLabel = tiedCount > 1 ? `T-${s.rnk}` : String(s.rnk);
                 return (
-                  <li key={s.season_year} className="flex justify-between">
+                  <li key={s.season_year} className={`flex justify-between ${isCurrentSeason(s.season_year) ? CURRENT_SEASON_CLASS : ''}`}>
                     <span>
                       {rankLabel}.{' '}
                       <Link href={`/seasons/${s.season_year}`} replace className="hover:underline">
@@ -635,7 +676,7 @@ export default async function TeamStatsPage({ searchParams }) {
 
       <h2 className="text-xl font-bold mb-1">Single Season Average</h2>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-        Minimum {MIN_GP_FOR_AVERAGE} games played to qualify
+        Minimum {MIN_GP_FOR_SEASON_BOARD} games played to qualify
       </p>
       <div className="grid md:grid-cols-2 gap-8">
         {DISPLAY_STATS.map((stat) => (
@@ -646,7 +687,7 @@ export default async function TeamStatsPage({ searchParams }) {
                 const tiedCount = arr.filter((r) => r.rnk === s.rnk).length;
                 const rankLabel = tiedCount > 1 ? `T-${s.rnk}` : String(s.rnk);
                 return (
-                  <li key={s.season_year} className="flex justify-between">
+                  <li key={s.season_year} className={`flex justify-between ${isCurrentSeason(s.season_year) ? CURRENT_SEASON_CLASS : ''}`}>
                     <span>
                       {rankLabel}.{' '}
                       <Link href={`/seasons/${s.season_year}`} replace className="hover:underline">
