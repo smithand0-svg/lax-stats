@@ -30,7 +30,8 @@ export default function ImportPage() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [resolutions, setResolutions] = useState({});
-  const [gameMeta, setGameMeta] = useState({ opponent: '', seasonYear: new Date().getFullYear(), gameType: 'regular', gameDate: '' });
+  const [gameMeta, setGameMeta] = useState({ opponent: '', seasonYear: new Date().getFullYear(), gameType: 'regular', gameDate: '', round: '' });
+  const roundRequiredButMissing = gameMeta.gameType === 'playoff' && !gameMeta.round;
   const [status, setStatus] = useState('idle'); // idle | previewing | ready | committing | done | error
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
@@ -172,11 +173,26 @@ export default function ImportPage() {
             <select
               className="border rounded px-3 py-2"
               value={gameMeta.gameType}
-              onChange={(e) => setGameMeta({ ...gameMeta, gameType: e.target.value })}
+              onChange={(e) => setGameMeta({ ...gameMeta, gameType: e.target.value, round: '' })}
             >
               <option value="regular">Regular season</option>
               <option value="playoff">Playoff</option>
             </select>
+            {gameMeta.gameType === 'playoff' && (
+              <select
+                className="border rounded px-3 py-2"
+                value={gameMeta.round}
+                onChange={(e) => setGameMeta({ ...gameMeta, round: e.target.value ? parseInt(e.target.value, 10) : '' })}
+              >
+                <option value="">Round…</option>
+                <option value="64">Round of 64</option>
+                <option value="32">Round of 32</option>
+                <option value="16">Sweet 16</option>
+                <option value="8">Elite 8</option>
+                <option value="4">Final 4</option>
+                <option value="2">Championship</option>
+              </select>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -273,7 +289,7 @@ export default function ImportPage() {
 
           <button
             onClick={handleCommit}
-            disabled={!allResolved || !gameMeta.opponent || status === 'committing'}
+            disabled={!allResolved || !gameMeta.opponent || roundRequiredButMissing || status === 'committing'}
             className="bg-green-700 text-white px-5 py-2 rounded disabled:opacity-40"
           >
             {status === 'committing' ? 'Saving…' : 'Confirm & save game'}
@@ -313,7 +329,7 @@ export default function ImportPage() {
 
           <button
             onClick={handleCommit}
-            disabled={!gameMeta.opponent || status === 'committing'}
+            disabled={!gameMeta.opponent || roundRequiredButMissing || status === 'committing'}
             className="bg-green-700 text-white px-5 py-2 rounded disabled:opacity-40"
           >
             {status === 'committing' ? 'Saving…' : 'Confirm & save team stats'}

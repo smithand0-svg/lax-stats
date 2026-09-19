@@ -50,6 +50,18 @@ function resolveTeamStatsView(rawView) {
 // reasonable starting default, easy to adjust.
 const MIN_GP_FOR_AVERAGE = 2;
 
+// Playoff round values are 64/32/16/8/4/2 (games remaining), 2 = championship.
+// Named rounds match the labels already used elsewhere on the site (e.g.
+// Season History's BC Notes column: Sweet 16, Elite 8, Final 4).
+const ROUND_LABELS = {
+  64: 'Round of 64',
+  32: 'Round of 32',
+  16: 'Sweet 16',
+  8: 'Elite 8',
+  4: 'Final 4',
+  2: 'Championship',
+};
+
 // --- Static historical baselines, transcribed from the source sheets ---
 // Any season_year here that also appears in the live-computed data is
 // dropped automatically (see mergeSeasonStatic/mergeGameStatic below) —
@@ -99,55 +111,55 @@ const STATIC_GAME_RECORDS = {
   },
   playoff: {
     points: [
-      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 34 },
-      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 33 },
-      { opponent: 'Sylvania Southview', season_year: 2019, value: 25 },
-      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 23 },
-      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 22 },
-      { opponent: 'Padua Franciscan', season_year: 2026, value: 22 },
-      { opponent: 'Holy Name', season_year: 2022, value: 21 },
-      { opponent: 'Holy Name', season_year: 2022, value: 21 },
-      { opponent: 'Rocky River', season_year: 2023, value: 19 },
-      { opponent: 'Ottawa Hills', season_year: 2025, value: 19 },
+      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 34, date: '2023-05-16', round: 64 },
+      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 33, date: '2022-05-17', round: 64 },
+      { opponent: 'Sylvania Southview', season_year: 2019, value: 25, date: '2019-05-13', round: 64 },
+      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 23, date: '2022-05-23', round: 16 },
+      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 22, date: '2021-05-17', round: 64 },
+      { opponent: 'Padua Franciscan', season_year: 2026, value: 22, date: '2026-05-20', round: 32 },
+      { opponent: 'Holy Name', season_year: 2022, value: 21, date: '2022-05-20', round: 32 },
+      { opponent: 'Holy Name', season_year: 2022, value: 21, date: '2022-05-20', round: 32 },
+      { opponent: 'Rocky River', season_year: 2023, value: 19, date: '2023-05-19', round: 32 },
+      { opponent: 'Ottawa Hills', season_year: 2025, value: 19, date: '2025-05-16', round: 64 },
     ],
     goals: [
-      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 20 },
-      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 19 },
-      { opponent: 'Kent Roosevelt', season_year: 2004, value: 18 },
-      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 17 },
-      { opponent: 'Sylvania Southview', season_year: 2019, value: 15 },
-      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 15 },
-      { opponent: 'Westerville North', season_year: 2009, value: 14 },
-      { opponent: 'Rocky River', season_year: 2023, value: 13 },
-      { opponent: 'Sylvania Northview', season_year: 2011, value: 13 },
-      { opponent: 'Perrysburg', season_year: 2005, value: 13 },
+      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 20, date: '2023-05-16', round: 64 },
+      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 19, date: '2022-05-17', round: 64 },
+      { opponent: 'Kent Roosevelt', season_year: 2004, value: 18, date: '2004-06-02', round: 4 },
+      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 17, date: '2021-05-17', round: 64 },
+      { opponent: 'Sylvania Southview', season_year: 2019, value: 15, date: '2019-05-13', round: 64 },
+      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 15, date: '2022-05-23', round: 16 },
+      { opponent: 'Westerville North', season_year: 2009, value: 14, date: '2009-05-23', round: 64 },
+      { opponent: 'Rocky River', season_year: 2023, value: 13, date: '2023-05-19', round: 32 },
+      { opponent: 'Sylvania Northview', season_year: 2011, value: 13, date: '2011-05-19', round: 64 },
+      { opponent: 'Perrysburg', season_year: 2005, value: 13, date: '2005-05-21', round: 64 },
     ],
     assists: [
-      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 14 },
-      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 14 },
-      { opponent: 'Holy Name', season_year: 2022, value: 11 },
-      { opponent: 'Padua Franciscan', season_year: 2026, value: 11 },
-      { opponent: 'Sylvania Southview', season_year: 2019, value: 10 },
-      { opponent: 'Westlake OH', season_year: 2019, value: 10 },
-      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 8 },
-      { opponent: 'St Francis DeSales - Toledo', season_year: 2026, value: 8 },
-      { opponent: 'Sylvania Southview', season_year: 2024, value: 7 },
-      { opponent: 'Walsh Jesuit', season_year: 2023, value: 7 },
-      { opponent: 'Ottawa Hills', season_year: 2022, value: 7 },
-      { opponent: 'Perrysburg', season_year: 2016, value: 7 },
-      { opponent: 'Ottawa Hills', season_year: 2025, value: 7 },
+      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 14, date: '2023-05-16', round: 64 },
+      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 14, date: '2022-05-17', round: 64 },
+      { opponent: 'Holy Name', season_year: 2022, value: 11, date: '2022-05-20', round: 32 },
+      { opponent: 'Padua Franciscan', season_year: 2026, value: 11, date: '2026-05-20', round: 32 },
+      { opponent: 'Sylvania Southview', season_year: 2019, value: 10, date: '2019-05-13', round: 64 },
+      { opponent: 'Westlake OH', season_year: 2019, value: 10, date: '2019-05-16', round: 32 },
+      { opponent: 'St Francis DeSales - Toledo', season_year: 2022, value: 8, date: '2022-05-23', round: 16 },
+      { opponent: 'St Francis DeSales - Toledo', season_year: 2026, value: 8, date: '2026-05-25', round: 64 },
+      { opponent: 'Sylvania Southview', season_year: 2024, value: 7, date: '2024-05-16', round: 64 },
+      { opponent: 'Walsh Jesuit', season_year: 2023, value: 7, date: '2023-05-22', round: 16 },
+      { opponent: 'Ottawa Hills', season_year: 2022, value: 7, date: '2022-05-26', round: 8 },
+      { opponent: 'Perrysburg', season_year: 2016, value: 7, date: '2016-05-19', round: 32 },
+      { opponent: 'Ottawa Hills', season_year: 2025, value: 7, date: '2025-05-16', round: 64 },
     ],
     goals_against: [
-      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 0 },
-      { opponent: 'Walsh Jesuit', season_year: 2023, value: 0 },
-      { opponent: 'Sylvania Southview', season_year: 2019, value: 1 },
-      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 1 },
-      { opponent: 'Rocky River', season_year: 2024, value: 1 },
-      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 2 },
-      { opponent: 'Holy Name', season_year: 2022, value: 3 },
-      { opponent: 'Perrysburg', season_year: 2015, value: 3 },
-      { opponent: 'Brunswick', season_year: 2012, value: 3 },
-      { opponent: 'Rocky River', season_year: 2023, value: 4 },
+      { opponent: 'Benedictine Cleveland', season_year: 2023, value: 0, date: '2023-05-16', round: 64 },
+      { opponent: 'Walsh Jesuit', season_year: 2023, value: 0, date: '2023-05-22', round: 16 },
+      { opponent: 'Sylvania Southview', season_year: 2019, value: 1, date: '2019-05-13', round: 64 },
+      { opponent: 'Benedictine Cleveland', season_year: 2021, value: 1, date: '2021-05-17', round: 64 },
+      { opponent: 'Rocky River', season_year: 2024, value: 1, date: '2024-05-28', round: 16 },
+      { opponent: 'Benedictine Cleveland', season_year: 2022, value: 2, date: '2022-05-17', round: 64 },
+      { opponent: 'Holy Name', season_year: 2022, value: 3, date: '2022-05-20', round: 32 },
+      { opponent: 'Perrysburg', season_year: 2015, value: 3, date: '2015-05-23', round: 64 },
+      { opponent: 'Brunswick', season_year: 2012, value: 3, date: '2012-05-17', round: 64 },
+      { opponent: 'Rocky River', season_year: 2023, value: 4, date: '2023-05-19', round: 32 },
     ],
   },
 };
@@ -375,7 +387,7 @@ const STATIC_SEASON_AVG_RECORDS = {
 // stat.
 async function getTeamGameTotals(view) {
   const { rows } = await pool.query(
-    `SELECT g.id, g.opponent, g.game_date, g.season_year, g.game_type,
+    `SELECT g.id, g.opponent, g.game_date, g.season_year, g.game_type, g.round,
             tgs.goals, tgs.assists, tgs.goals_against
      FROM games g
      JOIN team_game_stats tgs ON tgs.game_id = g.id
@@ -422,6 +434,8 @@ function mergeGameStatic(liveRows, staticRows, key) {
       id: `static-game-${key}-${i}`,
       opponent: r.opponent,
       season_year: r.season_year,
+      game_date: r.date || null,
+      round: r.round ?? null,
       [key]: r.value,
       isStatic: true,
     }));
@@ -574,7 +588,10 @@ export default async function TeamStatsPage({ searchParams }) {
                   <li key={g.id} className="flex justify-between">
                     <span>
                       {rankLabel}. vs {g.opponent}{' '}
-                      <span className="text-gray-400 dark:text-gray-500 text-xs">({g.season_year})</span>
+                      <span className="text-gray-400 dark:text-gray-500 text-xs">
+                        ({g.season_year}
+                        {view === 'playoff' && g.round ? `, ${ROUND_LABELS[g.round] || `Round of ${g.round}`}` : ''})
+                      </span>
                     </span>
                     <span className="font-medium">{g.value}</span>
                   </li>
