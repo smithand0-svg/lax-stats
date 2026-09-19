@@ -1,6 +1,7 @@
 ---
 deployment:
   tasks:
+    - source /home/andyldn/nodevenv/lax-stats-git/.next/standalone/20/bin/activate
     - export DEPLOYPATH=/home/andyldn/lax-stats-git/
     - cd $DEPLOYPATH && npm install --include=dev
     - cd $DEPLOYPATH && npm run build
