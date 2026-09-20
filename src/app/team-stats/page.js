@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { pool } from '@/lib/db';
 import { gameTypeCondition } from '@/lib/viewFilter';
+import { matchOpponent } from '@/lib/opponentMatcher';
 
 export const dynamic = 'force-dynamic';
 
@@ -408,6 +409,45 @@ async function getTeamGameTotals(view) {
   });
 }
 
+// Bug found Sep 19 (post-TM-16 fix): the same real opponent is often
+// spelled differently between the old static/curated arrays and the
+// live database's canonical opponent name (e.g. "Sylvania Northview"
+// vs "Northview", "Toledo Central Catholic" vs "Central Catholic").
+// mergeGameStatic used to compare opponent names as raw strings, so
+// it couldn't recognize these as the same game -- both sides would
+// show up as separate top-10 entries. This had always been true of
+// the data; it only became visible once the earlier year-wholesale
+// bug (which was deleting the static side outright) got fixed.
+// Resolving both sides through the same opponents/opponent_aliases
+// lookup the admin import picker already uses fixes it at the root.
+async function getOpponentLookup() {
+  const { rows: opponents } = await pool.query(
+    `SELECT o.id, o.name FROM opponents o JOIN teams t ON t.id = o.team_id WHERE t.slug = 'sjj'`
+  );
+  const { rows: aliases } = await pool.query(
+    `SELECT oa.opponent_id AS "opponentId", oa.alias_name AS "aliasName"
+     FROM opponent_aliases oa
+     JOIN opponents o ON o.id = oa.opponent_id
+     JOIN teams t ON t.id = o.team_id
+     WHERE t.slug = 'sjj'`
+  );
+  return { opponents, aliases };
+}
+
+function makeCanonicalizer({ opponents, aliases }) {
+  const cache = new Map();
+  return (name) => {
+    if (!name) return name;
+    if (cache.has(name)) return cache.get(name);
+    // No match (a genuinely one-off historical opponent never run
+    // through the picker) falls back to the name as given -- safe,
+    // just means it won't dedupe against anything, same as today.
+    const canonical = matchOpponent(name, opponents, aliases).canonicalName;
+    cache.set(name, canonical);
+    return canonical;
+  };
+}
+
 function rankBoard(rows, key) {
   const fewerIsBetter = FEWER_IS_BETTER.has(key);
   const withValue = rows
@@ -433,19 +473,22 @@ function rankBoard(rows, key) {
   return withValue.filter((r) => r.rnk <= 10);
 }
 
-function mergeGameStatic(liveRows, staticRows, key) {
+function mergeGameStatic(liveRows, staticRows, key, canonicalize) {
   const extra = (staticRows || [])
     .filter((r) => {
+      const staticCanonical = canonicalize(r.opponent);
       // Only drop a static record when a live row demonstrably covers
-      // it: same opponent, same season, and a value that equals or
-      // exceeds the static one. A live row simply existing for that
-      // YEAR is not enough -- that was the bug: it silently dropped
-      // historical records the moment ANY live data existed for their
-      // year, whether or not it actually captured that specific game.
+      // it: same opponent (resolved to canonical identity, not raw
+      // string -- see getOpponentLookup/makeCanonicalizer above), same
+      // season, and a value that equals or exceeds the static one. A
+      // live row simply existing for that YEAR is not enough -- that
+      // was the original bug: it silently dropped historical records
+      // the moment ANY live data existed for their year, whether or
+      // not it actually captured that specific game.
       const covered = liveRows.some(
         (live) =>
           live.season_year === r.season_year &&
-          live.opponent === r.opponent &&
+          canonicalize(live.opponent) === staticCanonical &&
           live[key] !== null &&
           live[key] !== undefined &&
           Number(live[key]) >= r.value
@@ -454,7 +497,7 @@ function mergeGameStatic(liveRows, staticRows, key) {
     })
     .map((r, i) => ({
       id: `static-game-${key}-${i}`,
-      opponent: r.opponent,
+      opponent: canonicalize(r.opponent),
       season_year: r.season_year,
       game_date: r.date || null,
       round: r.round ?? null,
@@ -493,7 +536,8 @@ export default async function TeamStatsPage({ searchParams }) {
   const { view: rawView } = await searchParams;
   const view = resolveTeamStatsView(rawView);
 
-  const gameRows = await getTeamGameTotals(view);
+  const [gameRows, opponentLookup] = await Promise.all([getTeamGameTotals(view), getOpponentLookup()]);
+  const canonicalize = makeCanonicalizer(opponentLookup);
   const staticGame = STATIC_GAME_RECORDS[view] || {};
   const staticSeason = STATIC_SEASON_RECORDS[view] || {};
   const staticSeasonAvg = STATIC_SEASON_AVG_RECORDS[view] || {};
@@ -531,7 +575,7 @@ export default async function TeamStatsPage({ searchParams }) {
   const seasonAvgBoards = {};
   DISPLAY_STATS.forEach((s) => {
     const gameRowsForStat = gameRows.filter((g) => g[s.key] !== null && g[s.key] !== undefined);
-    gameBoards[s.key] = rankBoard(mergeGameStatic(gameRowsForStat, staticGame[s.key], s.key), s.key);
+    gameBoards[s.key] = rankBoard(mergeGameStatic(gameRowsForStat, staticGame[s.key], s.key, canonicalize), s.key);
 
     const completeSeasonRows = seasonRows.filter((r) => r[`${s.key}__knownGp`] === r.gp);
     seasonBoards[s.key] = rankBoard(mergeSeasonStatic(completeSeasonRows, staticSeason[s.key], s.key), s.key);
