@@ -143,7 +143,7 @@ export default function ImportPage() {
         </button>
       </div>
 
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
+      <p className="text-gray-600 dark:text-gray-400 mb-6 min-h-12">
         {importMode === 'individual'
           ? 'Upload a Hudl "All Athletes — Totals" per-player CSV export. Writes to each player\u2019s game stat lines.'
           : 'Upload a Hudl team-totals CSV export (the "Overall" + per-period report). Writes directly to this game\u2019s team-level stats — no player matching involved.'}
