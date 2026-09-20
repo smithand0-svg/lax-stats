@@ -602,7 +602,7 @@ export default async function TeamStatsPage({ searchParams }) {
   // as the current, not-yet-finalized season instead of inferring it.
   const currentSeasonYear = hasAnyLiveData ? Math.max(...gameRows.map((g) => g.season_year)) : null;
   const isCurrentSeason = (year) => currentSeasonYear !== null && year === currentSeasonYear;
-  const CURRENT_SEASON_CLASS = 'bg-amber-50 dark:bg-amber-950/40 -mx-1 px-1 rounded';
+  const CURRENT_SEASON_CLASS = 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded';
 
   return (
     <main className="max-w-5xl mx-auto p-8">
