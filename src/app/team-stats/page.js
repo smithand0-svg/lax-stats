@@ -474,36 +474,54 @@ function rankBoard(rows, key) {
 }
 
 function mergeGameStatic(liveRows, staticRows, key, canonicalize) {
-  const extra = (staticRows || [])
-    .filter((r) => {
-      const staticCanonical = canonicalize(r.opponent);
-      // Only drop a static record when a live row demonstrably covers
-      // it: same opponent (resolved to canonical identity, not raw
-      // string -- see getOpponentLookup/makeCanonicalizer above), same
-      // season, and a value that equals or exceeds the static one. A
-      // live row simply existing for that YEAR is not enough -- that
-      // was the original bug: it silently dropped historical records
-      // the moment ANY live data existed for their year, whether or
-      // not it actually captured that specific game.
-      const covered = liveRows.some(
-        (live) =>
-          live.season_year === r.season_year &&
-          canonicalize(live.opponent) === staticCanonical &&
-          live[key] !== null &&
-          live[key] !== undefined &&
-          Number(live[key]) >= r.value
-      );
-      return !covered;
-    })
-    .map((r, i) => ({
-      id: `static-game-${key}-${i}`,
-      opponent: canonicalize(r.opponent),
-      season_year: r.season_year,
-      game_date: r.date || null,
-      round: r.round ?? null,
-      [key]: r.value,
-      isStatic: true,
-    }));
+  const notCoveredByLive = (staticRows || []).filter((r) => {
+    const staticCanonical = canonicalize(r.opponent);
+    // Only drop a static record when a live row demonstrably covers
+    // it: same opponent (resolved to canonical identity, not raw
+    // string -- see getOpponentLookup/makeCanonicalizer above), same
+    // season, and a value that equals or exceeds the static one. A
+    // live row simply existing for that YEAR is not enough -- that
+    // was the original bug: it silently dropped historical records
+    // the moment ANY live data existed for their year, whether or
+    // not it actually captured that specific game.
+    const covered = liveRows.some(
+      (live) =>
+        live.season_year === r.season_year &&
+        canonicalize(live.opponent) === staticCanonical &&
+        live[key] !== null &&
+        live[key] !== undefined &&
+        Number(live[key]) >= r.value
+    );
+    return !covered;
+  });
+
+  // Two static records can ALSO be the same real game under two
+  // spellings that were never linked in opponents/opponent_aliases
+  // (e.g. "Central Catholic" and "Toledo Central Catholic" both hand-
+  // entered for the same 2015/2016 game). The check above only ever
+  // compares static-vs-live, so a pair like that would both survive
+  // and double up on the board even after this filter. Collapse the
+  // remaining static rows by canonical opponent + season here too,
+  // keeping the higher value when they don't agree (a same-game
+  // duplicate should read as one record, not two close ones).
+  const bestByCanonicalKey = new Map();
+  notCoveredByLive.forEach((r) => {
+    const dedupeKey = `${r.season_year}::${canonicalize(r.opponent)}`;
+    const existing = bestByCanonicalKey.get(dedupeKey);
+    if (!existing || r.value > existing.value) {
+      bestByCanonicalKey.set(dedupeKey, r);
+    }
+  });
+
+  const extra = [...bestByCanonicalKey.values()].map((r, i) => ({
+    id: `static-game-${key}-${i}`,
+    opponent: canonicalize(r.opponent),
+    season_year: r.season_year,
+    game_date: r.date || null,
+    round: r.round ?? null,
+    [key]: r.value,
+    isStatic: true,
+  }));
   return [...liveRows, ...extra];
 }
 

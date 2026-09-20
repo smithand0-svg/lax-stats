@@ -106,7 +106,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "/home/claude/lax-stats-brighten",
+    "outputFileTracingRoot": "/home/claude/lax-stats",
     "enablePrerenderSourceMaps": true,
     "cacheComponents": false,
     "cacheLife": {
@@ -321,14 +321,14 @@
     "htmlLimitedBots": "[\\w-]+-Google|Google-[\\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight",
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.mjs",
-    "repoRoot": "/home/claude/lax-stats-brighten",
+    "repoRoot": "/home/claude/lax-stats",
     "turbopack": {
-      "root": "/home/claude/lax-stats-brighten"
+      "root": "/home/claude/lax-stats"
     },
     "distDirRoot": ".next",
     "supportsImmutableAssets": false
   },
-  "appDir": "/home/claude/lax-stats-brighten",
+  "appDir": "/home/claude/lax-stats",
   "relativeAppDir": "",
   "files": [
     ".next/package.json",

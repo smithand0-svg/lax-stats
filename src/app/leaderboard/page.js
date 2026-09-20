@@ -220,6 +220,25 @@ export default async function LeaderboardPage({ searchParams }) {
     return (years && formatYearRanges(years, programYears)) || '—';
   }
 
+  // "Current season" mirrors Team Stats (TM-16): the most recent season
+  // year with any live data, inferred from programYears until TM-17/TM-24
+  // (finalize/advance) exist to mark it explicitly.
+  //
+  // A career row here isn't a single season_year like a Team Stats game
+  // or season row -- it's a range of years (activeYearsByPlayer[id]),
+  // which yearsDisplay formats into a string like "2024-2026". Highlight
+  // membership MUST be checked against that underlying array with
+  // .includes(), not against the formatted range string or its endpoint --
+  // a player active 2024-2026 is still active THIS season and should
+  // highlight exactly like a player active only in 2026 would, even
+  // though their displayed range text differs.
+  const currentSeasonYear = programYears.length > 0 ? Math.max(...programYears) : null;
+  const CURRENT_SEASON_CLASS = 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded';
+  function isCurrentSeasonPlayer(playerId) {
+    const years = activeYearsByPlayer[playerId];
+    return currentSeasonYear !== null && !!years && years.includes(currentSeasonYear);
+  }
+
   // Tie-break sort (oldest record shown first) happens here in JS, since
   // "years active" is computed separately from the stats query.
   [...Object.values(boards), ...Object.values(rateBoards)].forEach((board) => {
@@ -245,6 +264,13 @@ export default async function LeaderboardPage({ searchParams }) {
         </p>
       )}
 
+      {currentSeasonYear !== null && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+          <span className={`${CURRENT_SEASON_CLASS} font-medium`}>Highlighted</span> players are still active in the{' '}
+          {currentSeasonYear} season, still in progress — career totals and rankings may shift as it continues.
+        </p>
+      )}
+
       <div className="grid md:grid-cols-2 gap-8">
         {STAT_COLUMNS.map((stat) => (
           <div key={stat.key}>
@@ -254,7 +280,12 @@ export default async function LeaderboardPage({ searchParams }) {
                 const tiedCount = arr.filter((r) => r.rnk === row.rnk).length;
                 const rankLabel = tiedCount > 1 ? `T-${row.rnk}` : String(row.rnk);
                 return (
-                  <li key={row.id} className="flex justify-between text-sm">
+                  <li
+                    key={row.id}
+                    className={`flex justify-between text-sm ${
+                      isCurrentSeasonPlayer(row.id) ? CURRENT_SEASON_CLASS : ''
+                    }`}
+                  >
                     <span>
                       <span className="text-gray-400 dark:text-gray-500 w-9 inline-block">{rankLabel}.</span>{' '}
                       <Link href={`/players/${row.id}`} replace className="hover:underline">
@@ -290,7 +321,12 @@ export default async function LeaderboardPage({ searchParams }) {
                 const rankLabel = tiedCount > 1 ? `T-${row.rnk}` : String(row.rnk);
                 const [extra1, extra2] = stat.extraValues(row);
                 return (
-                  <li key={row.id} className="flex justify-between text-sm">
+                  <li
+                    key={row.id}
+                    className={`flex justify-between text-sm ${
+                      isCurrentSeasonPlayer(row.id) ? CURRENT_SEASON_CLASS : ''
+                    }`}
+                  >
                     <span>
                       <span className="text-gray-400 dark:text-gray-500 w-9 inline-block">{rankLabel}.</span>{' '}
                       <Link href={`/players/${row.id}`} replace className="hover:underline">
