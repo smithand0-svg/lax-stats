@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { pool } from '@/lib/db';
 import { gameTypeCondition } from '@/lib/viewFilter';
-import { matchOpponent } from '@/lib/opponentMatcher';
+import { getOpponentLookup, makeCanonicalizer } from '@/lib/opponentLookup';
+import { ROUND_LABELS } from '@/lib/roundLabels';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,18 +52,6 @@ function resolveTeamStatsView(rawView) {
 // using the same number) — 2 is a reasonable starting default, easy
 // to adjust. Applies to both totals and averages, live and static.
 const MIN_GP_FOR_SEASON_BOARD = 2;
-
-// Playoff round values are 64/32/16/8/4/2 (games remaining), 2 = championship.
-// Named rounds match the labels already used elsewhere on the site (e.g.
-// Season History's BC Notes column: Sweet 16, Elite 8, Final 4).
-const ROUND_LABELS = {
-  64: 'Round of 64',
-  32: 'Round of 32',
-  16: 'Sweet 16',
-  8: 'Elite 8',
-  4: 'Final 4',
-  2: 'Championship',
-};
 
 // --- Static historical baselines, transcribed from the source sheets ---
 // Any season_year here that also appears in the live-computed data is
@@ -420,34 +409,6 @@ async function getTeamGameTotals(view) {
 // bug (which was deleting the static side outright) got fixed.
 // Resolving both sides through the same opponents/opponent_aliases
 // lookup the admin import picker already uses fixes it at the root.
-async function getOpponentLookup() {
-  const { rows: opponents } = await pool.query(
-    `SELECT o.id, o.name FROM opponents o JOIN teams t ON t.id = o.team_id WHERE t.slug = 'sjj'`
-  );
-  const { rows: aliases } = await pool.query(
-    `SELECT oa.opponent_id AS "opponentId", oa.alias_name AS "aliasName"
-     FROM opponent_aliases oa
-     JOIN opponents o ON o.id = oa.opponent_id
-     JOIN teams t ON t.id = o.team_id
-     WHERE t.slug = 'sjj'`
-  );
-  return { opponents, aliases };
-}
-
-function makeCanonicalizer({ opponents, aliases }) {
-  const cache = new Map();
-  return (name) => {
-    if (!name) return name;
-    if (cache.has(name)) return cache.get(name);
-    // No match (a genuinely one-off historical opponent never run
-    // through the picker) falls back to the name as given -- safe,
-    // just means it won't dedupe against anything, same as today.
-    const canonical = matchOpponent(name, opponents, aliases).canonicalName;
-    cache.set(name, canonical);
-    return canonical;
-  };
-}
-
 function rankBoard(rows, key) {
   const fewerIsBetter = FEWER_IS_BETTER.has(key);
   const withValue = rows
