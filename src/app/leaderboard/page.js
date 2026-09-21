@@ -635,17 +635,439 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
 // for a solo shutout, and `saves` is the ONE combined total for the
 // game, not per-player.
 const STATIC_SHUTOUTS = [
-  { players: ['Ian Horner'], opponent: 'Walsh', season_year: 2023, saves: 12, game_type: 'regular' },
+  { players: ['Ian Horner'], opponent: 'Walsh', season_year: 2023, saves: 12, game_type: 'playoff', round: 16 },
   { players: ['Ian Horner'], opponent: 'Bay', season_year: 2023, saves: 9, game_type: 'regular' },
   { players: ['Ian Horner', 'Avery Jackson'], opponent: 'Gahanna Lincoln', season_year: 2021, saves: 3, game_type: 'regular' },
-  { players: ['Ian Horner'], opponent: 'Benedictine', season_year: 2023, saves: 3, game_type: 'regular' },
+  { players: ['Ian Horner'], opponent: 'Benedictine', season_year: 2023, saves: 3, game_type: 'playoff', round: 64 },
   { players: ['Noah Houpt', 'Austin Honisko'], opponent: 'Central Catholic', season_year: 2016, saves: 2, game_type: 'regular' },
   { players: ['Ryan Pierce'], opponent: 'Bowling Green', season_year: 2019, saves: 1, game_type: 'regular' },
+  // Corrected 2026-09-21: the Walsh and Benedictine 2023 shutouts were
+  // originally seeded as 'regular' by default assumption -- cross-
+  // referencing Playoff_Individual_Stats.pdf's save% board (which marks
+  // complete-game shutouts with an asterisk) confirmed both are actually
+  // playoff games (Walsh Jesuit round 16, Benedictine round 64), same
+  // saves counts exactly. The other four are correctly regular season --
+  // neither the opponent nor season appears anywhere in the playoff data.
+  //
   // TODO: Andy's source sheet has playoff-specific caveats/minimums for
   // this board that haven't been specified yet -- until then, the
   // Playoff view shows the same full, uncapped list as Combined/Regular
   // (filtered to game_type: 'playoff' entries only), with no additional
   // minimum applied. Revisit once confirmed.
+];
+
+// --- Static SEASON and CAREER records -----------------------------
+// Seeded 2026-09-21 from the two "Individual Stats" PDFs Andy added to
+// the project (All_Individual_Stats.pdf = combined/regular view,
+// Playoff_Individual_Stats.pdf = playoff view) -- these are Andy's own
+// already-computed, authoritative top-10 boards, not raw data needing
+// re-aggregation. Matched against live data by player identity + season
+// (Season tier) or player identity alone (Career tier) -- a static entry
+// is dropped only when live demonstrably covers or exceeds it, same
+// "asserted baseline, live can override" principle as everywhere else
+// this session. A handful of name-spelling variants within Andy's own
+// PDFs were normalized with high confidence (Aidan/Aiden Gage, Nick/
+// Nicholas Bowers, Nick/Nicholas Cope, Sam/Samuel Rodgers, Will/William
+// Bohne, Zach/Zack Wester, Zach/Zachary Zitkovic) -- unlike the messier
+// IndividualPlayoffs.xlsx names, these were all unambiguous nickname
+// variants within one document.
+//
+// NOT seeded here: Season-tier rate stats (FO%/Save%) and the Combined-
+// view Career FO%/Save% boards -- the source PDFs give only the final
+// percentage for these, not the underlying attempt/shot counts needed to
+// actually verify a qualifying minimum or render "FOW: X, Attempts: Y".
+// The one exception is the Playoff-view Career FO% board below, which
+// does list exact counts.
+const STATIC_SEASON_RECORDS = [
+  { player: 'Bennett Miller', stat: 'goals', season_year: 2016, value: 80, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'goals', season_year: 2022, value: 75, game_type: 'combined' },
+  { player: 'Andrew Miller', stat: 'goals', season_year: 2021, value: 73, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'goals', season_year: 2024, value: 64, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'goals', season_year: 2019, value: 59, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'goals', season_year: 2015, value: 56, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'goals', season_year: 2019, value: 56, game_type: 'combined' },
+  { player: 'Larry Black', stat: 'goals', season_year: 2005, value: 52, game_type: 'combined' },
+  { player: 'Connor Martin', stat: 'goals', season_year: 2009, value: 52, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'goals', season_year: 2025, value: 52, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2024, value: 84, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2022, value: 66, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2021, value: 49, game_type: 'combined' },
+  { player: 'Brian Masterson', stat: 'assists', season_year: 2006, value: 47, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'assists', season_year: 2016, value: 39, game_type: 'combined' },
+  { player: 'Zachary Zitkovic', stat: 'assists', season_year: 2022, value: 34, game_type: 'combined' },
+  { player: 'Zachary Zitkovic', stat: 'assists', season_year: 2023, value: 32, game_type: 'combined' },
+  { player: 'Zack Wester', stat: 'assists', season_year: 2016, value: 29, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'assists', season_year: 2018, value: 28, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2023, value: 28, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'points', season_year: 2016, value: 119, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'points', season_year: 2024, value: 101, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'points', season_year: 2022, value: 95, game_type: 'combined' },
+  { player: 'Andrew Miller', stat: 'points', season_year: 2021, value: 88, game_type: 'combined' },
+  { player: 'Brian Masterson', stat: 'points', season_year: 2006, value: 84, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'points', season_year: 2022, value: 84, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'points', season_year: 2019, value: 83, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'points', season_year: 2019, value: 78, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'points', season_year: 2018, value: 75, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'points', season_year: 2018, value: 74, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'shots', season_year: 2022, value: 245, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'shots', season_year: 2016, value: 203, game_type: 'combined' },
+  { player: 'Drew Duesing', stat: 'shots', season_year: 2024, value: 162, game_type: 'combined' },
+  { player: 'Andrew Miller', stat: 'shots', season_year: 2021, value: 152, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'shots', season_year: 2019, value: 149, game_type: 'combined' },
+  { player: 'Caleb DeLong', stat: 'shots', season_year: 2026, value: 158, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'shots', season_year: 2018, value: 145, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'shots', season_year: 2024, value: 139, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'shots', season_year: 2019, value: 128, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'shots', season_year: 2020, value: 128, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'shots', season_year: 2015, value: 126, game_type: 'combined' },
+  { player: 'Owen Winkler', stat: 'faceoff_wins', season_year: 2024, value: 207, game_type: 'combined' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', season_year: 2026, value: 194, game_type: 'combined' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', season_year: 2016, value: 176, game_type: 'combined' },
+  { player: 'Cole Kovacs', stat: 'faceoff_wins', season_year: 2021, value: 157, game_type: 'combined' },
+  { player: 'Aiden Gage', stat: 'faceoff_wins', season_year: 2019, value: 149, game_type: 'combined' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', season_year: 2025, value: 142, game_type: 'combined' },
+  { player: 'Nate Miller', stat: 'faceoff_wins', season_year: 2022, value: 133, game_type: 'combined' },
+  { player: 'Aiden Gage', stat: 'faceoff_wins', season_year: 2018, value: 123, game_type: 'combined' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', season_year: 2015, value: 106, game_type: 'combined' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', season_year: 2017, value: 98, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2022, value: 174, game_type: 'combined' },
+  { player: 'James Reed', stat: 'ground_balls', season_year: 1994, value: 135, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2023, value: 134, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2021, value: 96, game_type: 'combined' },
+  { player: 'Sam Rodgers', stat: 'ground_balls', season_year: 2019, value: 94, game_type: 'combined' },
+  { player: 'Tyler Zetocha', stat: 'ground_balls', season_year: 2026, value: 94, game_type: 'combined' },
+  { player: 'Gage Buck', stat: 'ground_balls', season_year: 2024, value: 90, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'ground_balls', season_year: 2022, value: 84, game_type: 'combined' },
+  { player: 'Caleb DeLong', stat: 'ground_balls', season_year: 2026, value: 82, game_type: 'combined' },
+  { player: 'Sam Rodgers', stat: 'ground_balls', season_year: 2018, value: 79, game_type: 'combined' },
+  { player: 'Parker Thayer', stat: 'saves', season_year: 2017, value: 197, game_type: 'combined' },
+  { player: 'Braylon Lewis', stat: 'saves', season_year: 2025, value: 165, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'saves', season_year: 2024, value: 158, game_type: 'combined' },
+  { player: 'Noah Houpt', stat: 'saves', season_year: 2016, value: 157, game_type: 'combined' },
+  { player: 'JD Keller', stat: 'saves', season_year: 2018, value: 156, game_type: 'combined' },
+  { player: 'Ryan Pierce', stat: 'saves', season_year: 2019, value: 138, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'saves', season_year: 2022, value: 131, game_type: 'combined' },
+  { player: 'Dan Lach', stat: 'saves', season_year: 2021, value: 126, game_type: 'combined' },
+  { player: 'Connor Mischler', stat: 'saves', season_year: 2013, value: 118, game_type: 'combined' },
+  { player: 'Ian Horner', stat: 'saves', season_year: 2023, value: 108, game_type: 'combined' },
+  { player: 'Parker Thayer', stat: 'shots_against', season_year: 2017, value: 374, game_type: 'combined' },
+  { player: 'JD Keller', stat: 'shots_against', season_year: 2018, value: 329, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', season_year: 2024, value: 300, game_type: 'combined' },
+  { player: 'Noah Houpt', stat: 'shots_against', season_year: 2016, value: 285, game_type: 'combined' },
+  { player: 'Ryan Pierce', stat: 'shots_against', season_year: 2019, value: 276, game_type: 'combined' },
+  { player: 'Braylon Lewis', stat: 'shots_against', season_year: 2025, value: 274, game_type: 'combined' },
+  { player: 'Dan Lach', stat: 'shots_against', season_year: 2021, value: 249, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', season_year: 2022, value: 234, game_type: 'combined' },
+  { player: 'Mike Reilly', stat: 'shots_against', season_year: 2004, value: 211, game_type: 'combined' },
+  { player: 'Connor Mischler', stat: 'shots_against', season_year: 2013, value: 189, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', season_year: 2022, value: 73, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', season_year: 2023, value: 51, game_type: 'combined' },
+  { player: 'Mason Bowers', stat: 'caused_turnovers', season_year: 2024, value: 51, game_type: 'combined' },
+  { player: 'Mason Bowers', stat: 'caused_turnovers', season_year: 2025, value: 48, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', season_year: 2021, value: 39, game_type: 'combined' },
+  { player: 'Cooper Hoyt', stat: 'caused_turnovers', season_year: 2022, value: 36, game_type: 'combined' },
+  { player: 'Sam Rodgers', stat: 'caused_turnovers', season_year: 2018, value: 34, game_type: 'combined' },
+  { player: 'Cooper Hoyt', stat: 'caused_turnovers', season_year: 2023, value: 33, game_type: 'combined' },
+  { player: 'Abe Townley', stat: 'caused_turnovers', season_year: 2023, value: 33, game_type: 'combined' },
+  { player: 'Xander Lewis', stat: 'caused_turnovers', season_year: 2026, value: 33, game_type: 'combined' },
+  { player: 'Colton Bollenbacher', stat: 'caused_turnovers', season_year: 2021, value: 30, game_type: 'combined' },
+  { player: 'Jake Pieron', stat: 'caused_turnovers', season_year: 2026, value: 30, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'goals', season_year: 2022, value: 13, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'goals', season_year: 2023, value: 13, game_type: 'playoff' },
+  { player: 'Andrew Miller', stat: 'goals', season_year: 2021, value: 11, game_type: 'playoff' },
+  { player: 'Chandler Bankey', stat: 'goals', season_year: 2019, value: 10, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'goals', season_year: 2022, value: 10, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'goals', season_year: 2023, value: 10, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'goals', season_year: 2024, value: 10, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'goals', season_year: 2019, value: 9, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'goals', season_year: 2023, value: 9, game_type: 'playoff' },
+  { player: 'Bennett Miller', stat: 'goals', season_year: 2016, value: 8, game_type: 'playoff' },
+  { player: 'George Jacob', stat: 'goals', season_year: 2021, value: 8, game_type: 'playoff' },
+  { player: 'Drew Duesing', stat: 'goals', season_year: 2024, value: 8, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2024, value: 19, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2022, value: 16, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'assists', season_year: 2022, value: 10, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'assists', season_year: 2023, value: 8, game_type: 'playoff' },
+  { player: 'Zack Wester', stat: 'assists', season_year: 2016, value: 6, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2021, value: 6, game_type: 'playoff' },
+  { player: 'Gareth Francis', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Nicholas Cope', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'assists', season_year: 2023, value: 5, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'points', season_year: 2022, value: 23, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'points', season_year: 2024, value: 23, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'points', season_year: 2023, value: 18, game_type: 'playoff' },
+  { player: 'Will Bohne', stat: 'points', season_year: 2022, value: 15, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'points', season_year: 2023, value: 15, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'points', season_year: 2019, value: 14, game_type: 'playoff' },
+  { player: 'Chandler Bankey', stat: 'points', season_year: 2019, value: 13, game_type: 'playoff' },
+  { player: 'Andrew Miller', stat: 'points', season_year: 2021, value: 13, game_type: 'playoff' },
+  { player: 'Alex Weinberg', stat: 'points', season_year: 2019, value: 11, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'points', season_year: 2022, value: 11, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'points', season_year: 2022, value: 11, game_type: 'playoff' },
+  { player: 'Will Bohne', stat: 'shots', season_year: 2022, value: 40, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'shots', season_year: 2023, value: 36, game_type: 'playoff' },
+  { player: 'Drew Duesing', stat: 'shots', season_year: 2024, value: 35, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'shots', season_year: 2019, value: 27, game_type: 'playoff' },
+  { player: 'Jude Dzierwa', stat: 'shots', season_year: 2024, value: 27, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'shots', season_year: 2023, value: 26, game_type: 'playoff' },
+  { player: 'Caleb DeLong', stat: 'shots', season_year: 2026, value: 26, game_type: 'playoff' },
+  { player: 'Bennett Miller', stat: 'shots', season_year: 2016, value: 25, game_type: 'playoff' },
+  { player: 'Andrew Miller', stat: 'shots', season_year: 2021, value: 24, game_type: 'playoff' },
+  { player: 'Chandler Bankey', stat: 'shots', season_year: 2019, value: 22, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'shots', season_year: 2023, value: 22, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'shots', season_year: 2024, value: 22, game_type: 'playoff' },
+  { player: 'Owen Winkler', stat: 'faceoff_wins', season_year: 2024, value: 54, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'faceoff_wins', season_year: 2022, value: 37, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', season_year: 2026, value: 36, game_type: 'playoff' },
+  { player: 'Aiden Gage', stat: 'faceoff_wins', season_year: 2019, value: 27, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'faceoff_wins', season_year: 2023, value: 26, game_type: 'playoff' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', season_year: 2015, value: 25, game_type: 'playoff' },
+  { player: 'Nicholas Cope', stat: 'faceoff_wins', season_year: 2016, value: 22, game_type: 'playoff' },
+  { player: 'Cole Kovacs', stat: 'faceoff_wins', season_year: 2021, value: 18, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', season_year: 2025, value: 12, game_type: 'playoff' },
+  { player: 'Nate Miller', stat: 'faceoff_wins', season_year: 2022, value: 10, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2022, value: 32, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'ground_balls', season_year: 2026, value: 25, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2021, value: 23, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'ground_balls', season_year: 2023, value: 23, game_type: 'playoff' },
+  { player: 'Owen Winkler', stat: 'ground_balls', season_year: 2024, value: 22, game_type: 'playoff' },
+  { player: 'Gage Buck', stat: 'ground_balls', season_year: 2024, value: 21, game_type: 'playoff' },
+  { player: 'Sam Rodgers', stat: 'ground_balls', season_year: 2019, value: 19, game_type: 'playoff' },
+  { player: 'Cooper Hoyt', stat: 'ground_balls', season_year: 2022, value: 19, game_type: 'playoff' },
+  { player: 'Kaden King', stat: 'ground_balls', season_year: 2022, value: 17, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'ground_balls', season_year: 2023, value: 17, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'saves', season_year: 2022, value: 40, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'saves', season_year: 2023, value: 29, game_type: 'playoff' },
+  { player: 'Ryan Pierce', stat: 'saves', season_year: 2019, value: 25, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'saves', season_year: 2024, value: 22, game_type: 'playoff' },
+  { player: 'Dylan Sobb', stat: 'saves', season_year: 2026, value: 21, game_type: 'playoff' },
+  { player: 'Noah Houpt', stat: 'saves', season_year: 2016, value: 18, game_type: 'playoff' },
+  { player: 'Dan Lach', stat: 'saves', season_year: 2021, value: 18, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'saves', season_year: 2024, value: 16, game_type: 'playoff' },
+  { player: 'Braylon Lewis', stat: 'saves', season_year: 2025, value: 16, game_type: 'playoff' },
+  { player: 'Noah Houpt', stat: 'saves', season_year: 2015, value: 15, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', season_year: 2022, value: 77, game_type: 'playoff' },
+  { player: 'Ryan Pierce', stat: 'shots_against', season_year: 2019, value: 43, game_type: 'playoff' },
+  { player: 'Dylan Sobb', stat: 'shots_against', season_year: 2026, value: 41, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', season_year: 2024, value: 40, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'shots_against', season_year: 2023, value: 38, game_type: 'playoff' },
+  { player: 'Noah Houpt', stat: 'shots_against', season_year: 2016, value: 37, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'shots_against', season_year: 2024, value: 37, game_type: 'playoff' },
+  { player: 'Braylon Lewis', stat: 'shots_against', season_year: 2025, value: 34, game_type: 'playoff' },
+  { player: 'Dan Lach', stat: 'shots_against', season_year: 2021, value: 33, game_type: 'playoff' },
+  { player: 'JD Keller', stat: 'shots_against', season_year: 2018, value: 32, game_type: 'playoff' },
+  { player: 'Mason Bowers', stat: 'caused_turnovers', season_year: 2024, value: 17, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', season_year: 2022, value: 10, game_type: 'playoff' },
+  { player: 'Gage Buck', stat: 'caused_turnovers', season_year: 2024, value: 9, game_type: 'playoff' },
+  { player: 'Cooper Hoyt', stat: 'caused_turnovers', season_year: 2021, value: 8, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', season_year: 2021, value: 8, game_type: 'playoff' },
+  { player: 'Andrew Dunphy', stat: 'caused_turnovers', season_year: 2021, value: 8, game_type: 'playoff' },
+  { player: 'Sam Rodgers', stat: 'caused_turnovers', season_year: 2019, value: 7, game_type: 'playoff' },
+  { player: 'Abe Townley', stat: 'caused_turnovers', season_year: 2022, value: 7, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'caused_turnovers', season_year: 2022, value: 6, game_type: 'playoff' },
+  { player: 'Colton Bollenbacher', stat: 'caused_turnovers', season_year: 2021, value: 5, game_type: 'playoff' },
+];
+
+const STATIC_CAREER_RECORDS = [
+  { player: 'Alexander Speer', stat: 'goals', firstYear: 2022, lastYear: 2025, value: 165, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'goals', firstYear: 2016, lastYear: 2019, value: 162, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'goals', firstYear: 2015, lastYear: 2016, value: 136, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'goals', firstYear: 2016, lastYear: 2019, value: 130, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'goals', firstYear: 2020, lastYear: 2023, value: 130, game_type: 'combined' },
+  { player: 'Connor Martin', stat: 'goals', firstYear: 2007, lastYear: 2009, value: 117, game_type: 'combined' },
+  { player: 'Matt Kennedy', stat: 'goals', firstYear: 2003, lastYear: 2006, value: 113, game_type: 'combined' },
+  { player: 'Drew Duesing', stat: 'goals', firstYear: 2022, lastYear: 2025, value: 108, game_type: 'combined' },
+  { player: 'Alex Weinberg', stat: 'goals', firstYear: 2017, lastYear: 2019, value: 98, game_type: 'combined' },
+  { player: 'Owen Strayer', stat: 'goals', firstYear: 2023, lastYear: 2026, value: 88, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'assists', firstYear: 2021, lastYear: 2024, value: 227, game_type: 'combined' },
+  { player: 'Brian Masterson', stat: 'assists', firstYear: 2004, lastYear: 2006, value: 79, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 79, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 75, game_type: 'combined' },
+  { player: 'Zachary Zitkovic', stat: 'assists', firstYear: 2021, lastYear: 2023, value: 67, game_type: 'combined' },
+  { player: 'John Emmenecker', stat: 'assists', firstYear: 2012, lastYear: 2013, value: 59, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'assists', firstYear: 2015, lastYear: 2016, value: 53, game_type: 'combined' },
+  { player: 'Nicholas Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 51, game_type: 'combined' },
+  { player: 'Alex Weinberg', stat: 'assists', firstYear: 2017, lastYear: 2019, value: 51, game_type: 'combined' },
+  { player: 'Connor Martin', stat: 'assists', firstYear: 2007, lastYear: 2009, value: 47, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'points', firstYear: 2021, lastYear: 2024, value: 296, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'points', firstYear: 2016, lastYear: 2019, value: 241, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'points', firstYear: 2016, lastYear: 2019, value: 205, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'points', firstYear: 2022, lastYear: 2025, value: 199, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'points', firstYear: 2015, lastYear: 2016, value: 189, game_type: 'combined' },
+  { player: 'Brian Masterson', stat: 'points', firstYear: 2004, lastYear: 2006, value: 165, game_type: 'combined' },
+  { player: 'Connor Martin', stat: 'points', firstYear: 2007, lastYear: 2009, value: 164, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'points', firstYear: 2020, lastYear: 2023, value: 157, game_type: 'combined' },
+  { player: 'Drew Duesing', stat: 'points', firstYear: 2022, lastYear: 2025, value: 155, game_type: 'combined' },
+  { player: 'Alex Weinberg', stat: 'points', firstYear: 2017, lastYear: 2019, value: 149, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'shots', firstYear: 2020, lastYear: 2023, value: 472, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'shots', firstYear: 2016, lastYear: 2019, value: 460, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'shots', firstYear: 2022, lastYear: 2025, value: 349, game_type: 'combined' },
+  { player: 'Chandler Bankey', stat: 'shots', firstYear: 2016, lastYear: 2019, value: 339, game_type: 'combined' },
+  { player: 'Bennett Miller', stat: 'shots', firstYear: 2015, lastYear: 2016, value: 329, game_type: 'combined' },
+  { player: 'Drew Duesing', stat: 'shots', firstYear: 2022, lastYear: 2025, value: 323, game_type: 'combined' },
+  { player: 'Owen Strayer', stat: 'shots', firstYear: 2023, lastYear: 2026, value: 315, game_type: 'combined' },
+  { player: 'Alex Weinberg', stat: 'shots', firstYear: 2017, lastYear: 2019, value: 266, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'shots', firstYear: 2021, lastYear: 2024, value: 235, game_type: 'combined' },
+  { player: 'Cameron Weinberg', stat: 'shots', firstYear: 2022, lastYear: 2025, value: 211, game_type: 'combined' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', firstYear: 2015, lastYear: 2017, value: 380, game_type: 'combined' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', firstYear: 2024, lastYear: 2026, value: 339, game_type: 'combined' },
+  { player: 'Aiden Gage', stat: 'faceoff_wins', firstYear: 2017, lastYear: 2019, value: 312, game_type: 'combined' },
+  { player: 'Owen Winkler', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2024, value: 261, game_type: 'combined' },
+  { player: 'Cole Kovacs', stat: 'faceoff_wins', firstYear: 2019, lastYear: 2021, value: 161, game_type: 'combined' },
+  { player: 'Quinn Staten', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 159, game_type: 'combined' },
+  { player: 'Nicholas Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 156, game_type: 'combined' },
+  { player: 'Nate Miller', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2022, value: 143, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2022, value: 80, game_type: 'combined' },
+  { player: 'Ryan Almester', stat: 'faceoff_wins', firstYear: 2015, lastYear: 2015, value: 66, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 404, game_type: 'combined' },
+  { player: 'Matt Kennedy', stat: 'ground_balls', firstYear: 2003, lastYear: 2006, value: 242, game_type: 'combined' },
+  { player: 'Sam Rodgers', stat: 'ground_balls', firstYear: 2016, lastYear: 2019, value: 206, game_type: 'combined' },
+  { player: 'Will Bohne', stat: 'ground_balls', firstYear: 2020, lastYear: 2023, value: 197, game_type: 'combined' },
+  { player: 'Ray Huntzinger', stat: 'ground_balls', firstYear: 2015, lastYear: 2018, value: 194, game_type: 'combined' },
+  { player: 'Nathan Aloi', stat: 'ground_balls', firstYear: 2016, lastYear: 2019, value: 168, game_type: 'combined' },
+  { player: 'Ian Moloney', stat: 'ground_balls', firstYear: 2023, lastYear: 2026, value: 163, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'ground_balls', firstYear: 2021, lastYear: 2024, value: 156, game_type: 'combined' },
+  { player: 'Tyler Zetocha', stat: 'ground_balls', firstYear: 2023, lastYear: 2026, value: 151, game_type: 'combined' },
+  { player: 'James Reed', stat: 'ground_balls', firstYear: 1994, lastYear: 1994, value: 135, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'saves', firstYear: 2022, lastYear: 2024, value: 323, game_type: 'combined' },
+  { player: 'Noah Houpt', stat: 'saves', firstYear: 2015, lastYear: 2016, value: 262, game_type: 'combined' },
+  { player: 'Parker Thayer', stat: 'saves', firstYear: 2015, lastYear: 2017, value: 201, game_type: 'combined' },
+  { player: 'Ian Horner', stat: 'saves', firstYear: 2022, lastYear: 2024, value: 177, game_type: 'combined' },
+  { player: 'Braylon Lewis', stat: 'saves', firstYear: 2025, lastYear: 2025, value: 165, game_type: 'combined' },
+  { player: 'JD Keller', stat: 'saves', firstYear: 2018, lastYear: 2018, value: 156, game_type: 'combined' },
+  { player: 'Ryan Pierce', stat: 'saves', firstYear: 2017, lastYear: 2020, value: 139, game_type: 'combined' },
+  { player: 'Dan Lach', stat: 'saves', firstYear: 2021, lastYear: 2021, value: 126, game_type: 'combined' },
+  { player: 'Connor Mischler', stat: 'saves', firstYear: 2013, lastYear: 2013, value: 118, game_type: 'combined' },
+  { player: 'Dylan Sobb', stat: 'saves', firstYear: 2026, lastYear: 2026, value: 87, game_type: 'combined' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', firstYear: 2022, lastYear: 2024, value: 635, game_type: 'combined' },
+  { player: 'Noah Houpt', stat: 'shots_against', firstYear: 2015, lastYear: 2016, value: 473, game_type: 'combined' },
+  { player: 'Parker Thayer', stat: 'shots_against', firstYear: 2015, lastYear: 2017, value: 381, game_type: 'combined' },
+  { player: 'JD Keller', stat: 'shots_against', firstYear: 2018, lastYear: 2018, value: 329, game_type: 'combined' },
+  { player: 'Ian Horner', stat: 'shots_against', firstYear: 2022, lastYear: 2024, value: 282, game_type: 'combined' },
+  { player: 'Ryan Pierce', stat: 'shots_against', firstYear: 2017, lastYear: 2020, value: 277, game_type: 'combined' },
+  { player: 'Braylon Lewis', stat: 'shots_against', firstYear: 2025, lastYear: 2025, value: 274, game_type: 'combined' },
+  { player: 'Dan Lach', stat: 'shots_against', firstYear: 2021, lastYear: 2021, value: 249, game_type: 'combined' },
+  { player: 'Mike Reilly', stat: 'shots_against', firstYear: 2004, lastYear: 2004, value: 211, game_type: 'combined' },
+  { player: 'Connor Mischler', stat: 'shots_against', firstYear: 2013, lastYear: 2013, value: 189, game_type: 'combined' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 163, game_type: 'combined' },
+  { player: 'Mason Bowers', stat: 'caused_turnovers', firstYear: 2022, lastYear: 2024, value: 110, game_type: 'combined' },
+  { player: 'Cooper Hoyt', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 89, game_type: 'combined' },
+  { player: 'Sam Rodgers', stat: 'caused_turnovers', firstYear: 2016, lastYear: 2019, value: 81, game_type: 'combined' },
+  { player: 'Abe Townley', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 57, game_type: 'combined' },
+  { player: 'Xander Lewis', stat: 'caused_turnovers', firstYear: 2025, lastYear: 2026, value: 46, game_type: 'combined' },
+  { player: 'Kaden King', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 45, game_type: 'combined' },
+  { player: 'Quinn Wiklendt', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2024, value: 42, game_type: 'combined' },
+  { player: 'Kyler Ayers', stat: 'caused_turnovers', firstYear: 2024, lastYear: 2025, value: 41, game_type: 'combined' },
+  { player: 'Jameson Moloney', stat: 'caused_turnovers', firstYear: 2025, lastYear: 2026, value: 35, game_type: 'combined' },
+  { player: 'Zachary Zitkovic', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 34, game_type: 'combined' },
+  { player: 'Ian Moloney', stat: 'caused_turnovers', firstYear: 2024, lastYear: 2026, value: 34, game_type: 'combined' },
+  { player: 'Alexander Speer', stat: 'goals', firstYear: 2022, lastYear: 2025, value: 31, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'goals', firstYear: 2021, lastYear: 2023, value: 24, game_type: 'playoff' },
+  { player: 'Will Bohne', stat: 'goals', firstYear: 2020, lastYear: 2023, value: 16, game_type: 'playoff' },
+  { player: 'Drew Duesing', stat: 'goals', firstYear: 2022, lastYear: 2025, value: 16, game_type: 'playoff' },
+  { player: 'Bennett Miller', stat: 'goals', firstYear: 2015, lastYear: 2016, value: 15, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'goals', firstYear: 2016, lastYear: 2019, value: 14, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'goals', firstYear: 2021, lastYear: 2024, value: 14, game_type: 'playoff' },
+  { player: 'Andrew Miller', stat: 'goals', firstYear: 2019, lastYear: 2021, value: 12, game_type: 'playoff' },
+  { player: 'Chandler Bankey', stat: 'goals', firstYear: 2016, lastYear: 2019, value: 12, game_type: 'playoff' },
+  { player: 'George Jacob', stat: 'goals', firstYear: 2019, lastYear: 2021, value: 12, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'assists', firstYear: 2021, lastYear: 2024, value: 42, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'assists', firstYear: 2021, lastYear: 2023, value: 15, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'assists', firstYear: 2022, lastYear: 2025, value: 10, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 9, game_type: 'playoff' },
+  { player: 'Zack Wester', stat: 'assists', firstYear: 2015, lastYear: 2016, value: 6, game_type: 'playoff' },
+  { player: 'Gareth Francis', stat: 'assists', firstYear: 2018, lastYear: 2019, value: 6, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'assists', firstYear: 2021, lastYear: 2023, value: 6, game_type: 'playoff' },
+  { player: 'Cameron Weinberg', stat: 'assists', firstYear: 2022, lastYear: 2025, value: 6, game_type: 'playoff' },
+  { player: 'Nicholas Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Ian Moloney', stat: 'assists', firstYear: 2024, lastYear: 2026, value: 5, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'points', firstYear: 2021, lastYear: 2024, value: 56, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'points', firstYear: 2022, lastYear: 2025, value: 41, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'points', firstYear: 2021, lastYear: 2023, value: 27, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'points', firstYear: 2016, lastYear: 2019, value: 23, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'points', firstYear: 2021, lastYear: 2023, value: 21, game_type: 'playoff' },
+  { player: 'Drew Duesing', stat: 'points', firstYear: 2022, lastYear: 2025, value: 20, game_type: 'playoff' },
+  { player: 'Will Bohne', stat: 'points', firstYear: 2020, lastYear: 2023, value: 19, game_type: 'playoff' },
+  { player: 'Bennett Miller', stat: 'points', firstYear: 2015, lastYear: 2016, value: 18, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'points', firstYear: 2021, lastYear: 2023, value: 17, game_type: 'playoff' },
+  { player: 'Chandler Bankey', stat: 'points', firstYear: 2016, lastYear: 2019, value: 16, game_type: 'playoff' },
+  { player: 'Ian Moloney', stat: 'points', firstYear: 2024, lastYear: 2026, value: 16, game_type: 'playoff' },
+  { player: 'Drew Duesing', stat: 'shots', firstYear: 2022, lastYear: 2025, value: 62, game_type: 'playoff' },
+  { player: 'Alexander Speer', stat: 'shots', firstYear: 2022, lastYear: 2025, value: 62, game_type: 'playoff' },
+  { player: 'Will Bohne', stat: 'shots', firstYear: 2020, lastYear: 2023, value: 61, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'shots', firstYear: 2021, lastYear: 2023, value: 51, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'shots', firstYear: 2021, lastYear: 2023, value: 50, game_type: 'playoff' },
+  { player: 'Nathan Aloi', stat: 'shots', firstYear: 2016, lastYear: 2019, value: 46, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'shots', firstYear: 2021, lastYear: 2024, value: 44, game_type: 'playoff' },
+  { player: 'Owen Strayer', stat: 'shots', firstYear: 2023, lastYear: 2026, value: 43, game_type: 'playoff' },
+  { player: 'Bennett Miller', stat: 'shots', firstYear: 2015, lastYear: 2016, value: 42, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'shots', firstYear: 2021, lastYear: 2023, value: 42, game_type: 'playoff' },
+  { player: 'Owen Winkler', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2024, value: 66, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'faceoff_wins', firstYear: 2024, lastYear: 2026, value: 48, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 44, game_type: 'playoff' },
+  { player: 'Aiden Gage', stat: 'faceoff_wins', firstYear: 2018, lastYear: 2019, value: 36, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 31, game_type: 'playoff' },
+  { player: 'Nicholas Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 28, game_type: 'playoff' },
+  { player: 'Jeff Szozda', stat: 'faceoff_wins', firstYear: 2015, lastYear: 2017, value: 25, game_type: 'playoff' },
+  { player: 'Cole Kovacs', stat: 'faceoff_wins', firstYear: 2019, lastYear: 2021, value: 20, game_type: 'playoff' },
+  { player: 'Nate Miller', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2022, value: 15, game_type: 'playoff' },
+  { player: 'Gage Buck', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2024, value: 7, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 78, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'ground_balls', firstYear: 2023, lastYear: 2026, value: 34, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 32, game_type: 'playoff' },
+  { player: 'Kaden King', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 29, game_type: 'playoff' },
+  { player: 'Cooper Hoyt', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 29, game_type: 'playoff' },
+  { player: 'Anthony Brohl', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 28, game_type: 'playoff' },
+  { player: 'Sam Rodgers', stat: 'ground_balls', firstYear: 2017, lastYear: 2019, value: 27, game_type: 'playoff' },
+  { player: 'Owen Winkler', stat: 'ground_balls', firstYear: 2022, lastYear: 2024, value: 27, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'ground_balls', firstYear: 2021, lastYear: 2023, value: 26, game_type: 'playoff' },
+  { player: 'Gage Buck', stat: 'ground_balls', firstYear: 2022, lastYear: 2024, value: 26, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'saves', firstYear: 2022, lastYear: 2024, value: 56, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'saves', firstYear: 2022, lastYear: 2024, value: 52, game_type: 'playoff' },
+  { player: 'Noah Houpt', stat: 'saves', firstYear: 2015, lastYear: 2016, value: 33, game_type: 'playoff' },
+  { player: 'Ryan Pierce', stat: 'saves', firstYear: 2018, lastYear: 2019, value: 25, game_type: 'playoff' },
+  { player: 'Dylan Sobb', stat: 'saves', firstYear: 2026, lastYear: 2026, value: 21, game_type: 'playoff' },
+  { player: 'Dan Lach', stat: 'saves', firstYear: 2021, lastYear: 2021, value: 18, game_type: 'playoff' },
+  { player: 'Braylon Lewis', stat: 'saves', firstYear: 2025, lastYear: 2025, value: 16, game_type: 'playoff' },
+  { player: 'JD Keller', stat: 'saves', firstYear: 2018, lastYear: 2018, value: 14, game_type: 'playoff' },
+  { player: 'Parker Thayer', stat: 'saves', firstYear: 2015, lastYear: 2016, value: 4, game_type: 'playoff' },
+  { player: 'James Smith', stat: 'saves', firstYear: 2025, lastYear: 2026, value: 2, game_type: 'playoff' },
+  { player: 'Nicholas Bowers', stat: 'shots_against', firstYear: 2022, lastYear: 2024, value: 117, game_type: 'playoff' },
+  { player: 'Ian Horner', stat: 'shots_against', firstYear: 2022, lastYear: 2024, value: 76, game_type: 'playoff' },
+  { player: 'Noah Houpt', stat: 'shots_against', firstYear: 2015, lastYear: 2016, value: 66, game_type: 'playoff' },
+  { player: 'Ryan Pierce', stat: 'shots_against', firstYear: 2018, lastYear: 2019, value: 43, game_type: 'playoff' },
+  { player: 'Dylan Sobb', stat: 'shots_against', firstYear: 2026, lastYear: 2026, value: 41, game_type: 'playoff' },
+  { player: 'Braylon Lewis', stat: 'shots_against', firstYear: 2025, lastYear: 2025, value: 34, game_type: 'playoff' },
+  { player: 'Dan Lach', stat: 'shots_against', firstYear: 2021, lastYear: 2021, value: 33, game_type: 'playoff' },
+  { player: 'JD Keller', stat: 'shots_against', firstYear: 2018, lastYear: 2018, value: 32, game_type: 'playoff' },
+  { player: 'Parker Thayer', stat: 'shots_against', firstYear: 2015, lastYear: 2016, value: 7, game_type: 'playoff' },
+  { player: 'James Smith', stat: 'shots_against', firstYear: 2025, lastYear: 2026, value: 3, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 23, game_type: 'playoff' },
+  { player: 'Mason Bowers', stat: 'caused_turnovers', firstYear: 2022, lastYear: 2025, value: 20, game_type: 'playoff' },
+  { player: 'Cooper Hoyt', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 17, game_type: 'playoff' },
+  { player: 'Zachary Zitkovic', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 11, game_type: 'playoff' },
+  { player: 'Sam Rodgers', stat: 'caused_turnovers', firstYear: 2016, lastYear: 2019, value: 10, game_type: 'playoff' },
+  { player: 'Abe Townley', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 10, game_type: 'playoff' },
+  { player: 'Gage Buck', stat: 'caused_turnovers', firstYear: 2022, lastYear: 2024, value: 10, game_type: 'playoff' },
+  { player: 'Andrew Dunphy', stat: 'caused_turnovers', firstYear: 2020, lastYear: 2021, value: 9, game_type: 'playoff' },
+  { player: 'Kaden King', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2023, value: 8, game_type: 'playoff' },
+  { player: 'Quinn Wiklendt', stat: 'caused_turnovers', firstYear: 2021, lastYear: 2024, value: 7, game_type: 'playoff' },
+];
+
+// Playoff Career FO% -- the one rate-stat board with exact counts given
+// in the source PDF, so it can be verified against the minimum and
+// rendered with real FOW/Attempts figures rather than guessed ones.
+const STATIC_CAREER_RATE_RECORDS = [
+  { player: 'Jeff Szozda', stat: 'fo_pct', firstYear: 2015, lastYear: 2017, faceoff_wins: 25, faceoff_losses: 11, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'fo_pct', firstYear: 2016, lastYear: 2019, faceoff_wins: 29, faceoff_losses: 17, game_type: 'playoff' },
+  { player: 'Owen Winkler', stat: 'fo_pct', firstYear: 2022, lastYear: 2024, faceoff_wins: 66, faceoff_losses: 46, game_type: 'playoff' },
+  { player: 'Aiden Gage', stat: 'fo_pct', firstYear: 2018, lastYear: 2019, faceoff_wins: 36, faceoff_losses: 27, game_type: 'playoff' },
+  { player: 'Tyler Zetocha', stat: 'fo_pct', firstYear: 2025, lastYear: 2026, faceoff_wins: 48, faceoff_losses: 39, game_type: 'playoff' },
+  { player: 'Tyler Meader', stat: 'fo_pct', firstYear: 2021, lastYear: 2023, faceoff_wins: 44, faceoff_losses: 38, game_type: 'playoff' },
+  { player: 'Quinn Staten', stat: 'fo_pct', firstYear: 2021, lastYear: 2023, faceoff_wins: 31, faceoff_losses: 27, game_type: 'playoff' },
+  { player: 'Cole Kovacs', stat: 'fo_pct', firstYear: 2019, lastYear: 2021, faceoff_wins: 20, faceoff_losses: 21, game_type: 'playoff' },
+  { player: 'Nate Miller', stat: 'fo_pct', firstYear: 2021, lastYear: 2022, faceoff_wins: 15, faceoff_losses: 17, game_type: 'playoff' },
 ];
 
 const ALL_STAT_SUM = `(goals+assists+shots+shots_on_goal+ground_balls+turnovers+caused_turnovers+faceoff_wins+faceoff_losses+saves+goals_against+personal_fouls+technical_fouls)`;
@@ -717,7 +1139,7 @@ function checkQualifier(row, qualifier, numerator, denominator) {
 }
 
 // --- CAREER tier (unchanged from pre-TM-19/TM-15 behavior) ------------
-async function getCareerBoards(view) {
+async function getCareerBoards(view, resolvePlayer) {
   const { rows } = await pool.query(
     `SELECT p.id, p.first_name, p.last_name, p.graduation_year,
             SUM(s.goals) AS goals, SUM(s.assists) AS assists, SUM(s.points) AS points,
@@ -731,24 +1153,66 @@ async function getCareerBoards(view) {
      GROUP BY p.id, p.first_name, p.last_name, p.graduation_year`
   );
 
+  function resolveStatic(r) {
+    const match = resolvePlayer(...splitName(r.player));
+    const displayYears = r.firstYear === r.lastYear ? String(r.firstYear) : `${r.firstYear}-${r.lastYear}`;
+    return {
+      ...r,
+      id: match ? match.id : `static-career-${r.player}`,
+      first_name: match ? match.first_name : splitName(r.player)[0],
+      last_name: match ? match.last_name : splitName(r.player)[1],
+      graduation_year: match ? match.graduation_year : null,
+      playerName: r.player,
+      displayYears,
+      isStatic: true,
+      resolvedPlayer: !!match,
+    };
+  }
+
   const boards = {};
   STAT_COLUMNS.forEach(({ key, compute }) => {
-    const withValue = rows
+    const liveWithValue = rows
       .map((r) => ({ ...r, value: compute ? compute(r) : Number(r[key]) }))
       .filter((r) => r.value > 0);
-    boards[key] = rankBoard(withValue);
+
+    const staticSurvivors = new Map();
+    STATIC_CAREER_RECORDS.filter((r) => r.stat === key && (view === 'combined' || r.game_type === view)).forEach(
+      (raw) => {
+        const r = resolveStatic(raw);
+        const covered = liveWithValue.some((live) => live.id === r.id && live.value >= r.value);
+        if (covered) return;
+        const existing = staticSurvivors.get(r.id);
+        if (!existing || r.value > existing.value) staticSurvivors.set(r.id, r);
+      }
+    );
+
+    boards[key] = rankBoard([...liveWithValue, ...staticSurvivors.values()]);
   });
 
   const rateBoards = {};
   RATE_STATS.forEach(({ key, numerator, denominator, minQualifier }) => {
     const qualifier = minQualifier.career && minQualifier.career[view];
     if (!qualifier) return;
-    const withValue = rows
-      .map((r) => {
-        const denom = denominator(r);
-        return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
-      })
-      .filter((r) => checkQualifier(r, qualifier, numerator, denominator));
+    const liveWithValue = rows.map((r) => {
+      const denom = denominator(r);
+      return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
+    });
+
+    const staticSurvivors = new Map();
+    STATIC_CAREER_RATE_RECORDS.filter((r) => r.stat === key && (view === 'combined' || r.game_type === view)).forEach(
+      (raw) => {
+        const r = resolveStatic(raw);
+        r.value = denominator(r) > 0 ? (numerator(r) / denominator(r)) * 100 : 0;
+        const liveRow = liveWithValue.find((live) => live.id === r.id);
+        if (liveRow && denominator(liveRow) >= denominator(r)) return;
+        const existing = staticSurvivors.get(r.id);
+        if (!existing || r.value > existing.value) staticSurvivors.set(r.id, r);
+      }
+    );
+
+    const withValue = [...liveWithValue, ...staticSurvivors.values()].filter(
+      (r) => checkQualifier(r, qualifier, numerator, denominator) || isManuallyQualified(r, key, 'career', view)
+    );
     rateBoards[key] = rankBoard(withValue);
   });
 
@@ -756,12 +1220,15 @@ async function getCareerBoards(view) {
 }
 
 // --- SEASON tier: top 10 individual (player, season) performances -----
-// Reuses season_totals exactly as the Career tier does, just grouped one
-// level less coarsely (by player AND season_year, instead of collapsing
-// every year together) -- the view's already-correct legacy
-// regular/playoff split (see db/001_init_schema.sql's season_totals
-// VIEW) means no new merge logic is needed here at all.
-async function getSeasonBoards(view) {
+// Live side reuses season_totals exactly as the Career tier does, just
+// grouped one level less coarsely (by player AND season_year) -- the
+// view's already-correct legacy regular/playoff split (see
+// db/001_init_schema.sql's season_totals VIEW) means no new merge logic
+// is needed for the LIVE side. Static records (from the two Individual
+// Stats PDFs) are merged the same "asserted baseline" way as everywhere
+// else: dropped only when a live row for the SAME player + SAME season
+// demonstrably covers or exceeds them.
+async function getSeasonBoards(view, resolvePlayer) {
   const { rows } = await pool.query(
     `SELECT p.id, p.first_name, p.last_name, p.graduation_year, s.season_year,
             SUM(s.goals) AS goals, SUM(s.assists) AS assists, SUM(s.points) AS points,
@@ -775,14 +1242,47 @@ async function getSeasonBoards(view) {
      GROUP BY p.id, p.first_name, p.last_name, p.graduation_year, s.season_year`
   );
 
+  function resolveStatic(r) {
+    const match = resolvePlayer(...splitName(r.player));
+    return {
+      ...r,
+      id: match ? match.id : `static-season-${r.player}-${r.season_year}`,
+      first_name: match ? match.first_name : splitName(r.player)[0],
+      last_name: match ? match.last_name : splitName(r.player)[1],
+      graduation_year: match ? match.graduation_year : null,
+      playerName: r.player,
+      isStatic: true,
+      resolvedPlayer: !!match,
+    };
+  }
+
   const boards = {};
   STAT_COLUMNS.forEach(({ key, compute }) => {
-    const withValue = rows
+    const liveWithValue = rows
       .map((r) => ({ ...r, value: compute ? compute(r) : Number(r[key]) }))
       .filter((r) => r.value > 0);
-    boards[key] = rankBoard(withValue);
+
+    const staticSurvivors = new Map();
+    STATIC_SEASON_RECORDS.filter((r) => r.stat === key && (view === 'combined' || r.game_type === view)).forEach(
+      (raw) => {
+        const r = resolveStatic(raw);
+        const covered = liveWithValue.some(
+          (live) => live.id === r.id && Number(live.season_year) === r.season_year && live.value >= r.value
+        );
+        if (covered) return;
+        const dedupeKey = `${r.id}::${r.season_year}`;
+        const existing = staticSurvivors.get(dedupeKey);
+        if (!existing || r.value > existing.value) staticSurvivors.set(dedupeKey, r);
+      }
+    );
+
+    boards[key] = rankBoard([...liveWithValue, ...staticSurvivors.values()]);
   });
 
+  // No Season-tier rate-stat static records yet -- the source PDFs don't
+  // give the underlying attempt/shot counts for a single season, only
+  // the final percentage (see the comment on STATIC_SEASON_RECORDS
+  // above). Live-only until that data is available.
   const rateBoards = {};
   RATE_STATS.forEach(({ key, numerator, denominator, minQualifier }) => {
     const qualifier = minQualifier.season && minQualifier.season[view];
@@ -1020,9 +1520,9 @@ export default async function LeaderboardPage({ searchParams }) {
   let rateBoards = {};
   let shutouts = [];
   if (scope === 'career') {
-    ({ boards, rateBoards } = await getCareerBoards(view));
+    ({ boards, rateBoards } = await getCareerBoards(view, resolvePlayer));
   } else if (scope === 'season') {
-    ({ boards, rateBoards } = await getSeasonBoards(view));
+    ({ boards, rateBoards } = await getSeasonBoards(view, resolvePlayer));
   } else {
     [{ boards, rateBoards } = { boards: {}, rateBoards: {} }, shutouts] = await Promise.all([
       getGameBoards(view, canonicalizeOpponent, resolvePlayer),
@@ -1030,9 +1530,11 @@ export default async function LeaderboardPage({ searchParams }) {
     ]);
   }
 
-  function firstActiveYear(playerId) {
-    const years = activeYearsByPlayer[playerId];
-    return years && years.length > 0 ? Math.min(...years) : 9999;
+  function firstActiveYear(row) {
+    const years = activeYearsByPlayer[row.id];
+    if (years && years.length > 0) return Math.min(...years);
+    if (row.isStatic && row.firstYear) return row.firstYear;
+    return 9999;
   }
 
   function yearsDisplay(playerId) {
@@ -1048,14 +1550,17 @@ export default async function LeaderboardPage({ searchParams }) {
   // years array with .includes(), not the formatted display range string
   // -- a player active 2024-2026 highlights exactly like one active only
   // in 2026 would. A SEASON or GAME row already names one specific
-  // season/game, so it's just a direct equality check instead.
+  // season/game, so it's just a direct equality check instead. A static-
+  // only career row (no live data at all for this player yet) falls back
+  // to its own lastYear.
   const currentSeasonYear = programYears.length > 0 ? Math.max(...programYears) : null;
   const CURRENT_SEASON_CLASS = 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded';
   function isCurrentSeasonRow(row) {
     if (currentSeasonYear === null) return false;
     if (scope === 'career') {
       const years = activeYearsByPlayer[row.id];
-      return !!years && years.includes(currentSeasonYear);
+      if (years) return years.includes(currentSeasonYear);
+      return row.isStatic && row.lastYear === currentSeasonYear;
     }
     return Number(row.season_year) === currentSeasonYear;
   }
@@ -1064,7 +1569,7 @@ export default async function LeaderboardPage({ searchParams }) {
   // by first active year for career rows, by the specific season/game
   // date otherwise.
   function tieBreak(a, b) {
-    if (scope === 'career') return firstActiveYear(a.id) - firstActiveYear(b.id);
+    if (scope === 'career') return firstActiveYear(a) - firstActiveYear(b);
     if (scope === 'season') return Number(a.season_year) - Number(b.season_year);
     return (a.game_date || '9999-99-99').localeCompare(b.game_date || '9999-99-99');
   }
@@ -1104,7 +1609,7 @@ export default async function LeaderboardPage({ searchParams }) {
   // career, season year for season, opponent (ALWAYS shown, per Andy)
   // plus round for game.
   function RowContext({ row }) {
-    if (scope === 'career') return <>({yearsDisplay(row.id)})</>;
+    if (scope === 'career') return <>({row.isStatic && row.displayYears ? row.displayYears : yearsDisplay(row.id)})</>;
     if (scope === 'season') return <>({row.season_year})</>;
     return (
       <>
