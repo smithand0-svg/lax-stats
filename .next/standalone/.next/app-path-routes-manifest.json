@@ -12,14 +12,14 @@
   "/admin/import/page": "/admin/import",
   "/admin/login/page": "/admin/login",
   "/page": "/",
-  "/coaching-stats/page": "/coaching-stats",
-  "/college-honors/page": "/college-honors",
   "/debug/page": "/debug",
   "/players/[id]/page": "/players/[id]",
   "/search/page": "/search",
   "/season-history/page": "/season-history",
-  "/seasons/[year]/page": "/seasons/[year]",
+  "/coaching-stats/page": "/coaching-stats",
   "/seasons/page": "/seasons",
+  "/seasons/[year]/page": "/seasons/[year]",
   "/team-stats/page": "/team-stats",
+  "/college-honors/page": "/college-honors",
   "/leaderboard/page": "/leaderboard"
 }
