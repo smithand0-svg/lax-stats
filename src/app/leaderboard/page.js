@@ -1726,7 +1726,7 @@ export default async function LeaderboardPage({ searchParams }) {
   }
 
   return (
-    <main className="max-w-5xl mx-auto p-8">
+    <main key={`${scope}-${view}`} className="max-w-5xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-1">SJJ Lacrosse — All-Time Leaders</h1>
       <p className="text-gray-500 dark:text-gray-400 mb-4">{subtitle}</p>
       <ViewToggle basePath="/leaderboard" currentView={view} extraParams={{ scope }} />

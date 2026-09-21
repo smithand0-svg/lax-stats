@@ -12,14 +12,14 @@
   "/admin/import/page": "app/admin/import/page.js",
   "/admin/login/page": "app/admin/login/page.js",
   "/page": "app/page.js",
-  "/debug/page": "app/debug/page.js",
+  "/college-honors/page": "app/college-honors/page.js",
   "/players/[id]/page": "app/players/[id]/page.js",
   "/search/page": "app/search/page.js",
-  "/college-honors/page": "app/college-honors/page.js",
+  "/season-history/page": "app/season-history/page.js",
+  "/debug/page": "app/debug/page.js",
+  "/coaching-stats/page": "app/coaching-stats/page.js",
   "/seasons/[year]/page": "app/seasons/[year]/page.js",
   "/seasons/page": "app/seasons/page.js",
-  "/season-history/page": "app/season-history/page.js",
-  "/coaching-stats/page": "app/coaching-stats/page.js",
   "/team-stats/page": "app/team-stats/page.js",
   "/leaderboard/page": "app/leaderboard/page.js"
 }
