@@ -15,11 +15,11 @@
   "/debug/page": "/debug",
   "/players/[id]/page": "/players/[id]",
   "/search/page": "/search",
+  "/college-honors/page": "/college-honors",
+  "/seasons/[year]/page": "/seasons/[year]",
+  "/seasons/page": "/seasons",
   "/season-history/page": "/season-history",
   "/coaching-stats/page": "/coaching-stats",
-  "/seasons/page": "/seasons",
-  "/seasons/[year]/page": "/seasons/[year]",
   "/team-stats/page": "/team-stats",
-  "/college-honors/page": "/college-honors",
   "/leaderboard/page": "/leaderboard"
 }
