@@ -1672,12 +1672,19 @@ export default async function LeaderboardPage({ searchParams }) {
   }
 
   // Tie-break sort (oldest record shown first, site-wide convention) --
-  // by first active year for career rows, by the specific season/game
-  // date otherwise.
+  // by first active year for career rows, by season year (then exact
+  // date, when known) for game rows. Season year must come first: most
+  // game rows have no exact date (not given in the source data), so
+  // comparing game_date alone left same-value ties effectively
+  // unsorted -- two rows from different years with no date both fell
+  // back to the same sentinel and compared equal.
   function tieBreak(a, b) {
     if (scope === 'career') return firstActiveYear(a) - firstActiveYear(b);
     if (scope === 'season') return Number(a.season_year) - Number(b.season_year);
-    return (a.game_date || '9999-99-99').localeCompare(b.game_date || '9999-99-99');
+    return (
+      Number(a.season_year) - Number(b.season_year) ||
+      (a.game_date || '9999-99-99').localeCompare(b.game_date || '9999-99-99')
+    );
   }
   [...Object.values(boards), ...Object.values(rateBoards)].forEach((board) => {
     board.sort((a, b) => Number(b.value) - Number(a.value) || tieBreak(a, b));
