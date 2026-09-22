@@ -1472,19 +1472,38 @@ async function getGameBoards(view, canonicalizeOpponent, resolvePlayer) {
       .filter((r) => r.value > 0);
 
     // Static entries not covered by live, deduped against EACH OTHER by
-    // player+opponent+SEASON+date too (same class of gap TM-16 found at
+    // player+opponent+SEASON+TYPE too (same class of gap TM-16 found at
     // the team level -- two hand-typed rows for the same real game
     // shouldn't both survive just because neither is "live"). season_year
     // must be part of the key: most regular-season rows have no exact
     // date, so without it, two DIFFERENT years against the same opponent
     // collapse into "the same game" and only the higher value survives.
+    //
+    // game_date is deliberately NOT part of the key: the same real game
+    // sometimes has one source entry with a real date (xlsx-derived) and
+    // another without (PDF-derived), which a date-inclusive key wrongly
+    // treated as two different games (e.g. Sam Rodgers vs Sylvania
+    // Southview 2019 showed up twice this way). Matching on
+    // player+opponent+season+type alone is safe for playoffs (single-
+    // elimination guarantees at most one meeting per opponent per
+    // season); when merging, whichever entry carries real date/round
+    // metadata is kept even if the other's value technically wins the tie.
     const staticSurvivors = new Map();
     staticRows.forEach((r) => {
       const value = compute ? compute(r) : Number(r[key] || 0);
       if (!(value > 0) || isCoveredByLive(r, key)) return;
-      const dedupeKey = `${r.playerName.toLowerCase()}::${r.opponent}::${r.season_year}::${r.game_date}`;
+      const dedupeKey = `${r.playerName.toLowerCase()}::${r.opponent}::${r.season_year}::${r.game_type}`;
       const existing = staticSurvivors.get(dedupeKey);
-      if (!existing || value > existing.value) {
+      if (!existing) {
+        staticSurvivors.set(dedupeKey, { ...r, value });
+      } else if (value > existing.value) {
+        staticSurvivors.set(dedupeKey, {
+          ...r,
+          value,
+          game_date: r.game_date || existing.game_date,
+          round: r.round || existing.round,
+        });
+      } else if (value === existing.value && !existing.game_date && r.game_date) {
         staticSurvivors.set(dedupeKey, { ...r, value });
       }
     });
