@@ -4,8 +4,6 @@ import { pool } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 const HONOR_LABELS = {
-  all_american: 'All-American',
-  academic_all_american: 'Academic All-American',
   collegiate_all_american: 'Collegiate All-American',
 };
 
@@ -21,13 +19,23 @@ function PlayerName({ honor }) {
 }
 
 export default async function CollegeAllAmericansPage() {
-  const { rows } = await pool.query(
-    `SELECT * FROM player_honors ORDER BY honor_year ASC NULLS LAST, player_name ASC`
-  );
+  // player_honors now covers only college_commitment / collegiate_all_american
+  // (recruiting and college-career outcomes) -- All-American and Academic
+  // All-American are USA Lacrosse SEASON honors and moved to season_honors
+  // as part of TM-18 (see db/024_season_honors.sql).
+  const [{ rows }, { rows: usaLaxHonors }] = await Promise.all([
+    pool.query(`SELECT * FROM player_honors ORDER BY honor_year ASC NULLS LAST, player_name ASC`),
+    pool.query(
+      `SELECT id, player_id, player_name, position, honor_label, season_year AS honor_year
+       FROM season_honors
+       WHERE honor_source = 'USA Lacrosse' AND honor_label IN ('All-American', 'Academic All-American')
+       ORDER BY season_year ASC NULLS LAST, player_name ASC`
+    ),
+  ]);
 
   const collegeCommitments = rows.filter((r) => r.honor_type === 'college_commitment');
-  const allAmericans = rows.filter((r) => r.honor_type === 'all_american');
-  const academicAllAmericans = rows.filter((r) => r.honor_type === 'academic_all_american');
+  const allAmericans = usaLaxHonors.filter((h) => h.honor_label === 'All-American');
+  const academicAllAmericans = usaLaxHonors.filter((h) => h.honor_label === 'Academic All-American');
   const collegiateAllAmericans = rows.filter((r) => r.honor_type === 'collegiate_all_american');
 
   return (

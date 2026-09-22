@@ -32,12 +32,28 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/admin/season-honors/[id]",
+      "regex": "^/api/admin/season\\-honors/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/season\\-honors/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/seasons/[year]/finalize",
       "regex": "^/api/admin/seasons/([^/]+?)/finalize(?:/)?$",
       "routeKeys": {
         "nxtPyear": "nxtPyear"
       },
       "namedRegex": "^/api/admin/seasons/(?<nxtPyear>[^/]+?)/finalize(?:/)?$"
+    },
+    {
+      "page": "/api/admin/team-awards/[id]",
+      "regex": "^/api/admin/team\\-awards/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/team\\-awards/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
       "page": "/players/[id]",
@@ -74,6 +90,12 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin/awards",
+      "regex": "^/admin/awards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/awards(?:/)?$"
     },
     {
       "page": "/admin/import",
@@ -136,10 +158,28 @@
       "namedRegex": "^/api/admin/opponents(?:/)?$"
     },
     {
+      "page": "/api/admin/players",
+      "regex": "^/api/admin/players(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/players(?:/)?$"
+    },
+    {
+      "page": "/api/admin/season-honors",
+      "regex": "^/api/admin/season\\-honors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/season\\-honors(?:/)?$"
+    },
+    {
       "page": "/api/admin/seasons/advance",
       "regex": "^/api/admin/seasons/advance(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/admin/seasons/advance(?:/)?$"
+    },
+    {
+      "page": "/api/admin/team-awards",
+      "regex": "^/api/admin/team\\-awards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/team\\-awards(?:/)?$"
     },
     {
       "page": "/coaching-stats",
