@@ -681,6 +681,8 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Tyler Zetocha', opponent: 'Ottawa Hills', season_year: 2026, game_type: 'regular', ground_balls: 15 },
   { player: 'James Reed', opponent: 'Cleveland Heights', season_year: 1994, game_type: 'regular', ground_balls: 14 },
   { player: 'Tyler Meader', opponent: 'Multiple', season_year: 2022, game_type: 'regular', ground_balls: 11 },
+  { player: 'Tyler Meader', opponent: 'Perrysburg', season_year: 2022, game_type: 'regular', ground_balls: 13 },
+  { player: 'Tyler Meader', opponent: 'Bay', season_year: 2022, game_type: 'regular', ground_balls: 13 },
   { player: 'Will Bohne', opponent: 'Gahanna Lincoln', season_year: 2021, game_type: 'regular', ground_balls: 12 },
   { player: 'Tyler Meader', opponent: 'St. Francis', season_year: 2023, game_type: 'regular', ground_balls: 12, caused_turnovers: 6 },
   { player: 'Sam Rodgers', opponent: 'Westlake', season_year: 2019, game_type: 'regular', ground_balls: 11 },
