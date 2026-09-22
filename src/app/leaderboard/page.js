@@ -197,16 +197,16 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Zack Wester', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 0, assists: 4, points: 4, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Alex Weinberg', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 2, assists: 4, points: 6, shots: 5, ground_balls: 0, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Nathan Aloi', opponent: 'Avon Lake', season_year: 2018, game_date: '2018-05-14', game_type: 'playoff', goals: 2, assists: 3, points: 5, shots: 5, ground_balls: 3, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', game_type: 'playoff', goals: 1, assists: 3, points: 0, shots: 4, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 3, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', game_type: 'playoff', goals: 1, assists: 3, points: 0, shots: 4, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 3, saves: 0, goals_against: 0 },
   { player: 'Ben Uncapher', opponent: 'St. Ignatius', season_year: 2015, game_date: '2015-05-28', game_type: 'playoff', goals: 0, assists: 2, points: 2, shots: 0, ground_balls: 3, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 1, assists: 2, points: 3, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 1, faceoff_losses: 0, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 1, assists: 2, points: 3, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 1, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Nathan Aloi', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 4, assists: 2, points: 6, shots: 8, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Nathan Aloi', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 2, assists: 2, points: 4, shots: 10, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Zack Wester', opponent: 'Olentangy', season_year: 2016, game_date: '2016-05-21', game_type: 'playoff', goals: 0, assists: 2, points: 2, shots: 1, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Chandler Bankey', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 4, assists: 2, points: 6, shots: 6, ground_balls: 0, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Sam Rodgers', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', round: 16, game_type: 'playoff', goals: 0, assists: 1, points: 0, shots: 1, ground_balls: 5, caused_turnovers: 3, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Chandler Bankey', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 3, assists: 1, points: 4, shots: 11, ground_balls: 3, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'St. Francis Toledo', season_year: 2018, game_date: '2018-05-17', game_type: 'playoff', goals: 0, assists: 1, points: 1, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 1, faceoff_losses: 0, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'St. Francis Toledo', season_year: 2018, game_date: '2018-05-17', game_type: 'playoff', goals: 0, assists: 1, points: 1, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 1, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Bennett Miller', opponent: 'Olentangy', season_year: 2016, game_date: '2016-05-21', round: 16, game_type: 'playoff', goals: 6, assists: 1, points: 7, shots: 15, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Jake Newcomer', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 2, assists: 1, points: 3, shots: 10, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Bennett Miller', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 2, assists: 1, points: 3, shots: 10, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
@@ -236,15 +236,15 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Eric Toncre', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 3, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Christian King', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 0, ground_balls: 2, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Eric Toncre', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 2, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Avon Lake', season_year: 2018, game_date: '2018-05-14', game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 2, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 5, faceoff_losses: 2, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Avon Lake', season_year: 2018, game_date: '2018-05-14', game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 2, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 5, faceoff_losses: 2, saves: 0, goals_against: 0 },
   { player: 'Blaze Whitton', opponent: 'Avon Lake', season_year: 2018, game_date: '2018-05-14', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Drew Dunphy', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Matthew Stansley', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Sam Rodgers', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 8, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 1, ground_balls: 6, caused_turnovers: 0, faceoff_wins: 14, faceoff_losses: 2, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 1, ground_balls: 6, caused_turnovers: 0, faceoff_wins: 14, faceoff_losses: 2, saves: 0, goals_against: 0 },
   { player: 'Ray Huntzinger', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 6, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Jeff Szozda', opponent: 'St. Ignatius', season_year: 2015, game_date: '2015-05-28', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 2, ground_balls: 5, caused_turnovers: 0, faceoff_wins: 13, faceoff_losses: 7, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Olentangy', season_year: 2016, game_date: '2016-05-21', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 1, ground_balls: 4, caused_turnovers: 0, faceoff_wins: 8, faceoff_losses: 10, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Olentangy', season_year: 2016, game_date: '2016-05-21', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 1, ground_balls: 4, caused_turnovers: 0, faceoff_wins: 8, faceoff_losses: 10, saves: 0, goals_against: 0 },
   { player: 'AJ Urbanski', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 3, ground_balls: 4, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Matt Padanilam', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 4, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Dalton Stolnicki', opponent: 'Perrysburg', season_year: 2016, game_date: '2016-05-19', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 4, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
@@ -262,7 +262,7 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Zack Wester', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 4, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Dan McCartney', opponent: 'St. Ignatius', season_year: 2015, game_date: '2015-05-28', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 4, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Alex Weinberg', opponent: 'St. Francis Toledo', season_year: 2018, game_date: '2018-05-17', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 4, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
-  { player: 'Nicholas Cope', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 3, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
+  { player: 'Nick Cope', opponent: 'Westlake', season_year: 2019, game_date: '2019-05-16', round: 32, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 3, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Dan McCartney', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 1, assists: 0, points: 1, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Gareth Francis', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', game_type: 'playoff', goals: 1, assists: 0, points: 0, shots: 2, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Colin Pigott', opponent: 'St. Ignatius', season_year: 2015, game_date: '2015-05-28', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 1, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
@@ -733,7 +733,7 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Drew Duesing', opponent: 'Ottawa Hills', season_year: 2025, round: 64, game_type: 'playoff', goals: 4 },
   { player: 'Caleb DeLong', opponent: 'Rocky River', season_year: 2026, round: 16, game_type: 'playoff', shots: 13 },
   { player: 'Tyler Zetocha', opponent: 'Padua Franciscan', season_year: 2026, round: 32, game_type: 'playoff', ground_balls: 13, faceoff_wins: 16, faceoff_losses: 5 },
-  { player: 'Nicholas Cope', opponent: 'Perrysburg', season_year: 2016, round: 32, game_type: 'playoff', faceoff_wins: 14, faceoff_losses: 2 },
+  { player: 'Nick Cope', opponent: 'Perrysburg', season_year: 2016, round: 32, game_type: 'playoff', faceoff_wins: 14, faceoff_losses: 2 },
   { player: 'Jeff Szozda', opponent: 'St. Ignatius', season_year: 2015, round: 32, game_type: 'playoff', faceoff_wins: 13 },
   { player: 'Tyler Zetocha', opponent: 'Rocky River', season_year: 2026, round: 16, game_type: 'playoff', faceoff_wins: 12 },
   { player: 'Owen Winkler', opponent: 'St. Francis Columbus', season_year: 2024, round: 2, game_type: 'playoff', faceoff_wins: 10 },
@@ -795,10 +795,14 @@ const STATIC_SHUTOUTS = [
 // "asserted baseline, live can override" principle as everywhere else
 // this session. A handful of name-spelling variants within Andy's own
 // PDFs were normalized with high confidence (Aidan/Aiden Gage, Nick/
-// Nicholas Bowers, Nick/Nicholas Cope, Sam/Samuel Rodgers, Will/William
+// Nicholas Bowers, Nicholas/Nick Cope, Sam/Samuel Rodgers, Will/William
 // Bohne, Zach/Zack Wester, Zach/Zachary Zitkovic) -- unlike the messier
 // IndividualPlayoffs.xlsx names, these were all unambiguous nickname
-// variants within one document.
+// variants within one document. Cope and Wester were initially
+// normalized in the WRONG direction (assumed the fuller name was
+// canonical without checking); both corrected after cross-referencing
+// the actual scripts/backfillHistorical.js source files, which are the
+// real source of truth for which spelling ended up in the database.
 //
 // NOT seeded here: Season-tier rate stats (FO%/Save%) and the Combined-
 // view Career FO%/Save% boards -- the source PDFs give only the final
@@ -919,7 +923,7 @@ const STATIC_SEASON_RECORDS = [
   { player: 'Zack Wester', stat: 'assists', season_year: 2016, value: 6, game_type: 'playoff' },
   { player: 'Quinn Wiklendt', stat: 'assists', season_year: 2021, value: 6, game_type: 'playoff' },
   { player: 'Gareth Francis', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
-  { player: 'Nicholas Cope', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
   { player: 'Nathan Aloi', stat: 'assists', season_year: 2019, value: 5, game_type: 'playoff' },
   { player: 'Quinn Staten', stat: 'assists', season_year: 2023, value: 5, game_type: 'playoff' },
   { player: 'Quinn Wiklendt', stat: 'points', season_year: 2022, value: 23, game_type: 'playoff' },
@@ -951,7 +955,7 @@ const STATIC_SEASON_RECORDS = [
   { player: 'Aiden Gage', stat: 'faceoff_wins', season_year: 2019, value: 27, game_type: 'playoff' },
   { player: 'Quinn Staten', stat: 'faceoff_wins', season_year: 2023, value: 26, game_type: 'playoff' },
   { player: 'Jeff Szozda', stat: 'faceoff_wins', season_year: 2015, value: 25, game_type: 'playoff' },
-  { player: 'Nicholas Cope', stat: 'faceoff_wins', season_year: 2016, value: 22, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'faceoff_wins', season_year: 2016, value: 22, game_type: 'playoff' },
   { player: 'Cole Kovacs', stat: 'faceoff_wins', season_year: 2021, value: 18, game_type: 'playoff' },
   { player: 'Tyler Zetocha', stat: 'faceoff_wins', season_year: 2025, value: 12, game_type: 'playoff' },
   { player: 'Nate Miller', stat: 'faceoff_wins', season_year: 2022, value: 10, game_type: 'playoff' },
@@ -1015,7 +1019,7 @@ const STATIC_CAREER_RECORDS = [
   { player: 'Zachary Zitkovic', stat: 'assists', firstYear: 2021, lastYear: 2023, value: 67, game_type: 'combined' },
   { player: 'John Emmenecker', stat: 'assists', firstYear: 2012, lastYear: 2013, value: 59, game_type: 'combined' },
   { player: 'Bennett Miller', stat: 'assists', firstYear: 2015, lastYear: 2016, value: 53, game_type: 'combined' },
-  { player: 'Nicholas Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 51, game_type: 'combined' },
+  { player: 'Nick Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 51, game_type: 'combined' },
   { player: 'Alex Weinberg', stat: 'assists', firstYear: 2017, lastYear: 2019, value: 51, game_type: 'combined' },
   { player: 'Connor Martin', stat: 'assists', firstYear: 2007, lastYear: 2009, value: 47, game_type: 'combined' },
   { player: 'Quinn Wiklendt', stat: 'points', firstYear: 2021, lastYear: 2024, value: 296, game_type: 'combined' },
@@ -1044,7 +1048,7 @@ const STATIC_CAREER_RECORDS = [
   { player: 'Owen Winkler', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2024, value: 261, game_type: 'combined' },
   { player: 'Cole Kovacs', stat: 'faceoff_wins', firstYear: 2019, lastYear: 2021, value: 161, game_type: 'combined' },
   { player: 'Quinn Staten', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 159, game_type: 'combined' },
-  { player: 'Nicholas Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 156, game_type: 'combined' },
+  { player: 'Nick Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 156, game_type: 'combined' },
   { player: 'Nate Miller', stat: 'faceoff_wins', firstYear: 2022, lastYear: 2022, value: 143, game_type: 'combined' },
   { player: 'Tyler Meader', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2022, value: 80, game_type: 'combined' },
   { player: 'Ryan Almester', stat: 'faceoff_wins', firstYear: 2015, lastYear: 2015, value: 66, game_type: 'combined' },
@@ -1108,7 +1112,7 @@ const STATIC_CAREER_RECORDS = [
   { player: 'Gareth Francis', stat: 'assists', firstYear: 2018, lastYear: 2019, value: 6, game_type: 'playoff' },
   { player: 'Quinn Staten', stat: 'assists', firstYear: 2021, lastYear: 2023, value: 6, game_type: 'playoff' },
   { player: 'Cameron Weinberg', stat: 'assists', firstYear: 2022, lastYear: 2025, value: 6, game_type: 'playoff' },
-  { player: 'Nicholas Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 5, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'assists', firstYear: 2016, lastYear: 2019, value: 5, game_type: 'playoff' },
   { player: 'Ian Moloney', stat: 'assists', firstYear: 2024, lastYear: 2026, value: 5, game_type: 'playoff' },
   { player: 'Quinn Wiklendt', stat: 'points', firstYear: 2021, lastYear: 2024, value: 56, game_type: 'playoff' },
   { player: 'Alexander Speer', stat: 'points', firstYear: 2022, lastYear: 2025, value: 41, game_type: 'playoff' },
@@ -1136,7 +1140,7 @@ const STATIC_CAREER_RECORDS = [
   { player: 'Tyler Meader', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 44, game_type: 'playoff' },
   { player: 'Aiden Gage', stat: 'faceoff_wins', firstYear: 2018, lastYear: 2019, value: 36, game_type: 'playoff' },
   { player: 'Quinn Staten', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2023, value: 31, game_type: 'playoff' },
-  { player: 'Nicholas Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 28, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'faceoff_wins', firstYear: 2016, lastYear: 2019, value: 28, game_type: 'playoff' },
   { player: 'Jeff Szozda', stat: 'faceoff_wins', firstYear: 2015, lastYear: 2017, value: 25, game_type: 'playoff' },
   { player: 'Cole Kovacs', stat: 'faceoff_wins', firstYear: 2019, lastYear: 2021, value: 20, game_type: 'playoff' },
   { player: 'Nate Miller', stat: 'faceoff_wins', firstYear: 2021, lastYear: 2022, value: 15, game_type: 'playoff' },
@@ -1188,7 +1192,7 @@ const STATIC_CAREER_RECORDS = [
 // rendered with real FOW/Attempts figures rather than guessed ones.
 const STATIC_CAREER_RATE_RECORDS = [
   { player: 'Jeff Szozda', stat: 'fo_pct', firstYear: 2015, lastYear: 2017, faceoff_wins: 25, faceoff_losses: 11, game_type: 'playoff' },
-  { player: 'Nicholas Cope', stat: 'fo_pct', firstYear: 2016, lastYear: 2019, faceoff_wins: 29, faceoff_losses: 17, game_type: 'playoff' },
+  { player: 'Nick Cope', stat: 'fo_pct', firstYear: 2016, lastYear: 2019, faceoff_wins: 29, faceoff_losses: 17, game_type: 'playoff' },
   { player: 'Owen Winkler', stat: 'fo_pct', firstYear: 2022, lastYear: 2024, faceoff_wins: 66, faceoff_losses: 46, game_type: 'playoff' },
   { player: 'Aiden Gage', stat: 'fo_pct', firstYear: 2018, lastYear: 2019, faceoff_wins: 36, faceoff_losses: 27, game_type: 'playoff' },
   { player: 'Tyler Zetocha', stat: 'fo_pct', firstYear: 2025, lastYear: 2026, faceoff_wins: 48, faceoff_losses: 39, game_type: 'playoff' },
