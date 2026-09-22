@@ -97,6 +97,31 @@ function formatHonor(h) {
   return h.position ? `${h.honor_year} — ${h.position}` : String(h.honor_year);
 }
 
+// TM-38: the full Awards & Honors section, distinct from the small
+// badge strip above (which only ever shows the marquee items -- All-
+// American/Academic All-American and college outcomes -- and is left
+// untouched here). Covers everything TM-18 added: internal Team
+// Awards and every external-honor source (League, OHSLCA, USA
+// Lacrosse, OHSAA, ...), player-only for now -- coach honors have
+// nowhere to attach until TM-37's staff table exists.
+async function getPlayerAwards(id) {
+  const [{ rows: teamAwards }, { rows: externalHonors }] = await Promise.all([
+    pool.query(
+      `SELECT id, season_year, team_level, award_category
+       FROM team_awards WHERE player_id = $1
+       ORDER BY season_year ASC, id ASC`,
+      [id]
+    ),
+    pool.query(
+      `SELECT id, season_year, position, honor_source, honor_label
+       FROM season_honors WHERE player_id = $1
+       ORDER BY season_year ASC, id ASC`,
+      [id]
+    ),
+  ]);
+  return { teamAwards, externalHonors };
+}
+
 export default async function PlayerProfilePage({ params, searchParams }) {
   const { id } = await params;
   const { view: rawView } = await searchParams;
@@ -106,6 +131,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
   if (!player) notFound();
 
   const honors = await getHonors(id);
+  const { teamAwards, externalHonors } = await getPlayerAwards(id);
 
   // Career totals under "combined" always determine which stat columns
   // are shown, so switching the toggle doesn't make columns jump around
@@ -187,6 +213,48 @@ export default async function PlayerProfilePage({ params, searchParams }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {(teamAwards.length > 0 || externalHonors.length > 0) && (
+        <>
+          <h2 className="text-lg font-semibold mt-10 mb-2 border-b pb-1">Awards &amp; Honors</h2>
+          <div className="grid sm:grid-cols-2 gap-8">
+            {teamAwards.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Team Awards</h3>
+                <table className="text-sm w-full">
+                  <tbody>
+                    {teamAwards.map((a) => (
+                      <tr key={a.id} className="border-b border-gray-100 dark:border-gray-800">
+                        <td className="py-1.5 pr-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{a.season_year}</td>
+                        <td className="py-1.5 pr-3 whitespace-nowrap">{a.team_level}</td>
+                        <td className="py-1.5 font-medium">{a.award_category}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {externalHonors.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">External Honors</h3>
+                <table className="text-sm w-full">
+                  <tbody>
+                    {externalHonors.map((h) => (
+                      <tr key={h.id} className="border-b border-gray-100 dark:border-gray-800">
+                        <td className="py-1.5 pr-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{h.season_year}</td>
+                        <td className="py-1.5 pr-3 whitespace-nowrap">{h.honor_source}</td>
+                        <td className="py-1.5 font-medium">
+                          {h.honor_label}{h.position ? ` (${h.position})` : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </main>
   );

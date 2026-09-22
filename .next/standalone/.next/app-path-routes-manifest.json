@@ -25,10 +25,10 @@
   "/college-honors/page": "/college-honors",
   "/debug/page": "/debug",
   "/players/[id]/page": "/players/[id]",
-  "/season-history/page": "/season-history",
-  "/seasons/[year]/page": "/seasons/[year]",
-  "/seasons/page": "/seasons",
   "/search/page": "/search",
+  "/seasons/[year]/page": "/seasons/[year]",
+  "/season-history/page": "/season-history",
+  "/seasons/page": "/seasons",
   "/team-stats/page": "/team-stats",
   "/leaderboard/page": "/leaderboard"
 }
