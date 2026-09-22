@@ -376,6 +376,16 @@ const STATIC_SEASON_AVG_RECORDS = {
 // which would silently understate — or fabricate a false shutout/zero
 // record for — a game or season that was never actually tracked for that
 // stat.
+// TM-24: the explicit current-season pointer, moved by the Advance
+// Season admin action -- replaces the old inferred-from-live-data
+// heuristic for TM-16's amber highlighting.
+async function getCurrentSeasonYear() {
+  const { rows } = await pool.query(
+    `SELECT current_season_year FROM teams WHERE slug = 'sjj'`
+  );
+  return rows[0]?.current_season_year ?? null;
+}
+
 async function getTeamGameTotals(view) {
   const { rows } = await pool.query(
     `SELECT g.id, g.opponent, g.game_date, g.season_year, g.game_type, g.round,
@@ -515,7 +525,11 @@ export default async function TeamStatsPage({ searchParams }) {
   const { view: rawView } = await searchParams;
   const view = resolveTeamStatsView(rawView);
 
-  const [gameRows, opponentLookup] = await Promise.all([getTeamGameTotals(view), getOpponentLookup()]);
+  const [gameRows, opponentLookup, currentSeasonYear] = await Promise.all([
+    getTeamGameTotals(view),
+    getOpponentLookup(),
+    getCurrentSeasonYear(),
+  ]);
   const canonicalize = makeCanonicalizer(opponentLookup);
   const staticGame = STATIC_GAME_RECORDS[view] || {};
   const staticSeason = STATIC_SEASON_RECORDS[view] || {};
@@ -574,12 +588,11 @@ export default async function TeamStatsPage({ searchParams }) {
   const hasAnyLiveData = gameRows.length > 0;
   const hasAnyStaticData = Object.values(staticGame).some((a) => a && a.length > 0);
 
-  // "Current season" for highlighting purposes: the most recent season
-  // year with any live game data for this view. There's no explicit
-  // finalize/advance mechanism yet (TM-17/TM-24), so this is a
-  // heuristic -- once those exist, this should read whatever they mark
-  // as the current, not-yet-finalized season instead of inferring it.
-  const currentSeasonYear = hasAnyLiveData ? Math.max(...gameRows.map((g) => g.season_year)) : null;
+  // "Current season" for highlighting purposes: teams.current_season_year
+  // (TM-24), an explicit admin-set pointer moved by the Advance Season
+  // action -- not inferred from live data. This means old-season
+  // highlighting turns off the moment Advance is clicked, even if the
+  // new season has no game data imported yet.
   const isCurrentSeason = (year) => currentSeasonYear !== null && year === currentSeasonYear;
   const CURRENT_SEASON_CLASS = 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded';
 

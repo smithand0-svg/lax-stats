@@ -1216,6 +1216,18 @@ async function getProgramYears() {
   return rows.map((r) => r.season_year);
 }
 
+// TM-24: the explicit current-season pointer, moved by the Advance
+// Season admin action -- replaces the old inferred-from-programYears
+// heuristic for TM-16's amber highlighting. Kept separate from
+// getProgramYears(), which still serves its original job of gap
+// detection for formatYearRanges().
+async function getCurrentSeasonYear() {
+  const { rows } = await pool.query(
+    `SELECT current_season_year FROM teams WHERE slug = 'sjj'`
+  );
+  return rows[0]?.current_season_year ?? null;
+}
+
 // "Years active" = years this player was a contributing varsity member —
 // logging even one stat in ANY category that year counts, regardless of
 // which specific leaderboard is being displayed. Computed once and reused
@@ -1662,11 +1674,12 @@ export default async function LeaderboardPage({ searchParams }) {
   const view = resolveView(rawView);
   const scope = resolveScope(rawScope);
 
-  const [programYears, activeYearsByPlayer, opponentLookup, playerLookup] = await Promise.all([
+  const [programYears, activeYearsByPlayer, opponentLookup, playerLookup, currentSeasonYear] = await Promise.all([
     getProgramYears(),
     getActiveYearsByPlayer(),
     getOpponentLookup(),
     getPlayerLookup(),
+    getCurrentSeasonYear(),
   ]);
   const canonicalizeOpponent = makeCanonicalizer(opponentLookup);
   const resolvePlayer = makePlayerResolver(playerLookup);
@@ -1697,9 +1710,9 @@ export default async function LeaderboardPage({ searchParams }) {
     return (years && formatYearRanges(years, programYears)) || '—';
   }
 
-  // "Current season" mirrors Team Stats (TM-16): the most recent season
-  // year with any live data, inferred from programYears until TM-17/TM-24
-  // (finalize/advance) exist to mark it explicitly.
+  // "Current season" mirrors Team Stats (TM-16): reads the explicit
+  // teams.current_season_year pointer (TM-24), moved by the Advance
+  // Season admin action -- not inferred from live data.
   //
   // A CAREER row's membership is checked against the player's raw active-
   // years array with .includes(), not the formatted display range string
@@ -1708,7 +1721,6 @@ export default async function LeaderboardPage({ searchParams }) {
   // season/game, so it's just a direct equality check instead. A static-
   // only career row (no live data at all for this player yet) falls back
   // to its own lastYear.
-  const currentSeasonYear = programYears.length > 0 ? Math.max(...programYears) : null;
   const CURRENT_SEASON_CLASS = 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded';
   function isCurrentSeasonRow(row) {
     if (currentSeasonYear === null) return false;

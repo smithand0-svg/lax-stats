@@ -136,6 +136,12 @@
       "namedRegex": "^/api/admin/opponents(?:/)?$"
     },
     {
+      "page": "/api/admin/seasons/advance",
+      "regex": "^/api/admin/seasons/advance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/seasons/advance(?:/)?$"
+    },
+    {
       "page": "/coaching-stats",
       "regex": "^/coaching\\-stats(?:/)?$",
       "routeKeys": {},

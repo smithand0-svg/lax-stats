@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/admin/seasons/advance/route"]={"moduleLoading":{"prefix":"/lax-stats/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"/home/claude/lax-stats/src/app/api/admin/seasons/advance/route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

@@ -1,5 +1,6 @@
 import { pool } from '@/lib/db';
 import FinalizeButton from '@/components/FinalizeButton';
+import AdvanceSeasonButton from '@/components/AdvanceSeasonButton';
 import { BASE_PATH } from '@/lib/basePath';
 
 export const dynamic = 'force-dynamic';
@@ -14,8 +15,21 @@ async function getSeasons() {
   return rows;
 }
 
+// TM-24: teams.current_season_year is the explicit pointer -- this is
+// what Advance moves, and what TM-16's amber highlighting on Team Stats
+// and the Leaderboard reads instead of inferring from live data.
+async function getCurrentSeason() {
+  const { rows } = await pool.query(
+    `SELECT t.current_season_year, ps.head_coach
+     FROM teams t
+     LEFT JOIN program_seasons ps ON ps.team_id = t.id AND ps.season_year = t.current_season_year
+     WHERE t.slug = 'sjj'`
+  );
+  return rows[0] || { current_season_year: null, head_coach: null };
+}
+
 export default async function AdminSeasonsPage() {
-  const seasons = await getSeasons();
+  const [seasons, currentSeason] = await Promise.all([getSeasons(), getCurrentSeason()]);
 
   return (
     <main className="max-w-3xl mx-auto p-8">
@@ -31,6 +45,28 @@ export default async function AdminSeasonsPage() {
         tenure, current-season pointers, etc.). Reversible: unfinalize a season to make a correction, then
         re-finalize when you're done.
       </p>
+
+      <div className="border rounded p-4 mb-8 border-gray-200 dark:border-gray-800">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          {currentSeason.current_season_year !== null ? (
+            <>
+              Current season is <span className="font-medium">{currentSeason.current_season_year}</span>
+              {currentSeason.head_coach ? <> ({currentSeason.head_coach})</> : ''}. Advancing credits{' '}
+              {currentSeason.head_coach || 'the head coach'} another season (or records a coach change) and
+              moves the amber &quot;in progress&quot; highlighting on Team Stats and the Leaderboard to the new
+              year -- separate from Finalizing, and not date-gated.
+            </>
+          ) : (
+            'No current season set.'
+          )}
+        </p>
+        {currentSeason.current_season_year !== null && (
+          <AdvanceSeasonButton
+            currentYear={currentSeason.current_season_year}
+            currentHeadCoach={currentSeason.head_coach}
+          />
+        )}
+      </div>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left border-b">

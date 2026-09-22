@@ -2,6 +2,14 @@ import { pool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+// TM-24: "Team #" is a pure display formula, no stored column needed --
+// season_year - 1989, verified against Andy's own numbers (1990 = Team
+// 1, 2027 = Team 38).
+const FIRST_SEASON_YEAR = 1990;
+function teamNumber(seasonYear) {
+  return seasonYear - (FIRST_SEASON_YEAR - 1);
+}
+
 export default async function SeasonHistoryPage() {
   const { rows } = await pool.query(
     `SELECT * FROM program_seasons ORDER BY season_year ASC`
@@ -16,7 +24,8 @@ export default async function SeasonHistoryPage() {
         <table className="text-sm border-collapse w-full">
           <thead>
             <tr className="text-left border-b">
-              <th className="py-2 pr-4">Year</th>
+              <th className="py-2 pr-4">Team #</th>
+              <th className="pr-4">Year</th>
               <th className="pr-4">Head Coach</th>
               <th className="pr-4">Div</th>
               <th className="pr-4">Regular</th>
@@ -30,7 +39,8 @@ export default async function SeasonHistoryPage() {
           <tbody>
             {rows.map((row) => (
               <tr key={row.season_year} className="border-b">
-                <td className="py-2 pr-4 font-medium">{row.season_year}</td>
+                <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{teamNumber(row.season_year)}</td>
+                <td className="pr-4 font-medium">{row.season_year}</td>
                 <td className="pr-4">{row.head_coach || '—'}</td>
                 <td className="pr-4">{row.division ?? '—'}</td>
                 <td className="pr-4">
