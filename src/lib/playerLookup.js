@@ -54,6 +54,19 @@ function makePlayerResolver(players) {
       const narrowed = matches.filter((p) => p.graduation_year === graduationYear);
       if (narrowed.length > 0) matches = narrowed;
     }
+    // Still ambiguous -- two+ real players share this name and grad
+    // year didn't (or couldn't) narrow it to one. A silent arbitrary
+    // pick here is worse than no link at all: it attaches real award/
+    // honor data to the WRONG actual person. Found live 2026-09-22 --
+    // a 2021 external honor for "Nate Miller" got linked to the
+    // Wooster-commit Nate Miller ('14 grad) instead of the correct,
+    // different Nate Miller active in 2021, because this used to fall
+    // through to matches[0] with no grad year given. Return null and
+    // let the caller display plain text instead of guessing.
+    if (matches.length > 1) {
+      cache.set(key, null);
+      return null;
+    }
     const result = matches[0] || null;
     cache.set(key, result);
     return result;
