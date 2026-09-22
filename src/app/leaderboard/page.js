@@ -80,8 +80,15 @@ const RATE_STATS = [
     extraLabels: ['Saves', 'Goals Against'],
     extraValues: (r) => [Number(r.saves), Number(r.goals_against)],
     minQualifier: {
-      // No Game tier -- single-game goalie excellence is the Shutouts
-      // board below, not a rate-stat leaderboard.
+      // No Combined/Regular Game tier -- single-game goalie excellence
+      // there is the Shutouts board below, not a rate-stat leaderboard.
+      // Playoffs uses this instead of Shutouts (Andy: shutouts is a
+      // regular-season concept) -- minimum of 1 shot faced, i.e.
+      // effectively none: Andy's own source list includes a 1-save/
+      // 1-attempt game as its own top entry.
+      game: {
+        playoff: { metric: 'denominator', value: 1 },
+      },
       season: {
         combined: { metric: 'denominator', value: 80 },
         regular: { metric: 'denominator', value: 80 },
@@ -180,6 +187,10 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Noah Houpt', opponent: 'Olentangy', season_year: 2016, game_date: '2016-05-21', round: 16, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 11, goals_against: 12 },
   { player: 'JD Keller', opponent: 'St. Francis Toledo', season_year: 2018, game_date: '2018-05-17', round: 32, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 7, goals_against: 12 },
   { player: 'Ryan Pierce', opponent: 'Ottawa Hills', season_year: 2019, game_date: '2019-05-20', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 0, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 5, goals_against: 12 },
+  // Confirmed by Andy: playoff was 17 shots against (above, correct as-is);
+  // 27 was a SEPARATE regular-season meeting with the same opponent, not
+  // a conflicting number for the same game.
+  { player: 'Ryan Pierce', opponent: 'Ottawa Hills', season_year: 2019, game_type: 'regular', shots_against: 27 },
   { player: 'Jeff Szozda', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 0, assists: 1, points: 1, shots: 0, ground_balls: 0, caused_turnovers: 1, faceoff_wins: 12, faceoff_losses: 4, saves: 0, goals_against: 1 },
   { player: 'Bo Taylor', opponent: 'Perrysburg', season_year: 2015, game_date: '2015-05-23', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 0, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 1 },
   { player: 'Gareth Francis', opponent: 'Sylvania Southview', season_year: 2019, game_date: '2019-05-13', round: 64, game_type: 'playoff', goals: 0, assists: 4, points: 4, shots: 2, ground_balls: 1, caused_turnovers: 1, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
@@ -339,8 +350,8 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Ian Horner', opponent: 'Benedictine', season_year: 2023, game_date: '2023-05-16', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 2, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 3, goals_against: 0 },
   { player: 'Ian Horner', opponent: 'Benedictine', season_year: 2021, game_date: '2021-05-17', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 1, goals_against: 0 },
   { player: 'Dan Lach', opponent: 'Benedictine', season_year: 2021, game_date: '2021-05-17', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 1 },
-  { player: 'Nicholas Bowers', opponent: 'University School', season_year: 2024, game_date: '2024-06-05', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 8, goals_against: 4 },
-  { player: 'Ian Horner', opponent: 'University School', season_year: 2024, game_date: '2024-06-05', game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 2, goals_against: 1 },
+  { player: 'Nicholas Bowers', opponent: 'University School', season_year: 2024, game_date: '2024-06-05', round: 4, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 8, goals_against: 4 },
+  { player: 'Ian Horner', opponent: 'University School', season_year: 2024, game_date: '2024-06-05', round: 4, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 0, faceoff_wins: 0, faceoff_losses: 0, saves: 2, goals_against: 1 },
   { player: 'Tyler Meader', opponent: 'Benedictine', season_year: 2021, game_date: '2021-05-17', round: 64, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 4, ground_balls: 8, caused_turnovers: 5, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Mason Bowers', opponent: 'Rocky River', season_year: 2024, game_date: '2024-05-28', round: 16, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 0, ground_balls: 1, caused_turnovers: 5, faceoff_wins: 0, faceoff_losses: 0, saves: 0, goals_against: 0 },
   { player: 'Tyler Meader', opponent: 'Ottawa Hills', season_year: 2022, game_date: '2022-05-26', round: 8, game_type: 'playoff', goals: 0, assists: 0, points: 0, shots: 2, ground_balls: 7, caused_turnovers: 4, faceoff_wins: 8, faceoff_losses: 10, saves: 0, goals_against: 0 },
@@ -728,6 +739,7 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Owen Winkler', opponent: 'St. Francis Columbus', season_year: 2024, round: 2, game_type: 'playoff', faceoff_wins: 10 },
   { player: 'Sam Rodgers', opponent: 'Southview', season_year: 2019, round: 64, game_type: 'playoff', ground_balls: 8 },
   { player: 'Dylan Sobb', opponent: 'St. Francis Toledo', season_year: 2026, round: 64, game_type: 'playoff', saves: 12, goals_against: 6 },
+  { player: 'James Smith', opponent: 'Padua Franciscan', season_year: 2026, round: 32, game_type: 'playoff', saves: 2, goals_against: 1 },
   { player: 'Nicholas Bowers (8)/Ian Horner (2)', opponent: 'University School', season_year: 2024, round: 4, game_type: 'playoff', saves: 10 },
   { player: 'Braylon Lewis', opponent: 'Ottawa Hills', season_year: 2025, round: 64, game_type: 'playoff', saves: 9 },
   { player: 'Braylon Lewis', opponent: 'St. Francis Toledo', season_year: 2025, round: 32, game_type: 'playoff', shots_against: 20 },
@@ -765,11 +777,11 @@ const STATIC_SHUTOUTS = [
   // saves counts exactly. The other four are correctly regular season --
   // neither the opponent nor season appears anywhere in the playoff data.
   //
-  // TODO: Andy's source sheet has playoff-specific caveats/minimums for
-  // this board that haven't been specified yet -- until then, the
-  // Playoff view shows the same full, uncapped list as Combined/Regular
-  // (filtered to game_type: 'playoff' entries only), with no additional
-  // minimum applied. Revisit once confirmed.
+  // Resolved 2026-09-21: Andy confirmed shutouts is a regular-season
+  // concept -- this board is not shown at all on the Playoff view (see
+  // the render condition below); Playoffs uses the Save% Game/playoff
+  // rate board instead, which itself marks true shutouts implicitly
+  // (100% save rate = zero goals against).
 ];
 
 // --- Static SEASON and CAREER records -----------------------------
@@ -1825,7 +1837,7 @@ export default async function LeaderboardPage({ searchParams }) {
         ))}
       </div>
 
-      {scope === 'game' && (
+      {scope === 'game' && view !== 'playoff' && (
         <>
           <h2 className="text-xl font-bold mt-12 mb-1">Shutouts</h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
