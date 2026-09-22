@@ -49,12 +49,35 @@ async function getSeasonBreakdown(id, view) {
   return rows;
 }
 
+// Player profiles have shown a small amber-badge strip of honors next
+// to the name since before TM-18. All-American / Academic All-American
+// moved from player_honors into season_honors as part of TM-18 (see
+// db/024_season_honors.sql) -- merge both sources back into the same
+// shape so this strip keeps showing exactly what it always did. This
+// is a narrow fix, not the full TM-38 (awards/honors section on player
+// profiles) -- it does not show internal Team Awards or the other
+// external-honor sources (League, OHSLCA, OHSAA) TM-18 also added;
+// that's TM-38's job.
 async function getHonors(id) {
-  const { rows } = await pool.query(
-    `SELECT * FROM player_honors WHERE player_id = $1 ORDER BY honor_year ASC NULLS LAST`,
-    [id]
-  );
-  return rows;
+  const [{ rows: collegeHonors }, { rows: usaLaxHonors }] = await Promise.all([
+    pool.query(`SELECT * FROM player_honors WHERE player_id = $1`, [id]),
+    pool.query(
+      `SELECT id, position, honor_label, season_year
+       FROM season_honors
+       WHERE player_id = $1 AND honor_source = 'USA Lacrosse' AND honor_label IN ('All-American', 'Academic All-American')`,
+      [id]
+    ),
+  ]);
+  const migratedHonors = usaLaxHonors.map((h) => ({
+    id: `season_honor_${h.id}`,
+    honor_type: h.honor_label === 'All-American' ? 'all_american' : 'academic_all_american',
+    honor_year: h.season_year,
+    position: h.position,
+    school: null,
+    division: null,
+    note: null,
+  }));
+  return [...collegeHonors, ...migratedHonors].sort((a, b) => (a.honor_year ?? 9999) - (b.honor_year ?? 9999));
 }
 
 const HONOR_LABELS = {
