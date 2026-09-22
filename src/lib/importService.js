@@ -58,6 +58,23 @@ async function previewImport(teamId, csvText, Papa) {
  * way decisions.md already says it should, for both formats.
  */
 async function resolveOpponentAndGame(client, gameMeta) {
+  // TM-17: a finalized season is locked against import writes. Checked
+  // here (before any opponent/game row is touched) since both commit
+  // paths already funnel through this one function -- the single place
+  // to enforce it rather than duplicating the check in each. Finalizing
+  // a season doesn't affect anything else in the app (see TM-24 for the
+  // separate season-advance mechanism); this is the only place it's
+  // read.
+  const { rows: seasonRows } = await client.query(
+    'SELECT finalized_at FROM program_seasons WHERE team_id = $1 AND season_year = $2',
+    [gameMeta.teamId, gameMeta.seasonYear]
+  );
+  if (seasonRows[0] && seasonRows[0].finalized_at) {
+    throw new Error(
+      `The ${gameMeta.seasonYear} season is finalized and locked against imports. Unfinalize it first if you need to make a correction.`
+    );
+  }
+
   const { rows: existingOpponents } = await client.query(
     'SELECT id, name FROM opponents WHERE team_id = $1',
     [gameMeta.teamId]

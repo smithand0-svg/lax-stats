@@ -119,9 +119,14 @@ export default function ImportPage() {
     <main className="max-w-4xl mx-auto p-8">
       <div className="flex justify-between items-start mb-2">
         <h1 className="text-2xl font-bold">Import Game Stats</h1>
-        <button onClick={handleLogout} className="text-sm text-gray-500 dark:text-gray-400 underline">
-          Log out
-        </button>
+        <div className="flex items-center gap-4">
+          <a href={`${BASE_PATH}/admin/seasons`} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            Season finalization
+          </a>
+          <button onClick={handleLogout} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            Log out
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4">

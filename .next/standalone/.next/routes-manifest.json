@@ -32,6 +32,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/admin/seasons/[year]/finalize",
+      "regex": "^/api/admin/seasons/([^/]+?)/finalize(?:/)?$",
+      "routeKeys": {
+        "nxtPyear": "nxtPyear"
+      },
+      "namedRegex": "^/api/admin/seasons/(?<nxtPyear>[^/]+?)/finalize(?:/)?$"
+    },
+    {
       "page": "/players/[id]",
       "regex": "^/players/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -78,6 +86,12 @@
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/admin/seasons",
+      "regex": "^/admin/seasons(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/seasons(?:/)?$"
     },
     {
       "page": "/api/admin/import/commit",
