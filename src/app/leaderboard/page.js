@@ -22,7 +22,15 @@ const STAT_COLUMNS = [
   { key: 'saves', label: 'Saves' },
   // "Shots Against" isn't a raw column — it's the total shots a goalie
   // faced, i.e. saves + goals allowed. Computed, not summed directly.
-  { key: 'shots_against', label: 'Shots Against', compute: (r) => Number(r.saves) + Number(r.goals_against) },
+  {
+    key: 'shots_against',
+    label: 'Shots Against',
+    // Prefer a directly-known total (some entries only have the PDF's
+    // top-10 "Most Shots Against" value itself, with no saves/goals-
+    // against split available to derive it from) -- fall back to
+    // deriving from saves+goals_against when both are known.
+    compute: (r) => (r.shots_against !== undefined ? Number(r.shots_against) : Number(r.saves) + Number(r.goals_against)),
+  },
 ];
 
 // Rate-based leaderboards (a percentage, not a raw count). Each has its
@@ -687,19 +695,19 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Tyler Meader', opponent: 'St. Francis', season_year: 2023, game_type: 'regular', ground_balls: 12, caused_turnovers: 6 },
   { player: 'Sam Rodgers', opponent: 'Westlake', season_year: 2019, game_type: 'regular', ground_balls: 11 },
   { player: 'Sam Rodgers', opponent: 'Brunswick', season_year: 2019, game_type: 'regular', ground_balls: 10 },
-  { player: 'Noah Houpt', opponent: 'Shaker Heights', season_year: 2016, game_type: 'regular', saves: 20 },
-  { player: 'Parker Thayer', opponent: 'Strongsville', season_year: 2017, game_type: 'regular', saves: 19 },
+  { player: 'Noah Houpt', opponent: 'Shaker Heights', season_year: 2016, game_type: 'regular', saves: 20, goals_against: 7 },
+  { player: 'Parker Thayer', opponent: 'Strongsville', season_year: 2017, game_type: 'regular', saves: 19, goals_against: 13 },
   { player: 'Nicholas Bowers', opponent: 'Perrysburg', season_year: 2022, game_type: 'regular', saves: 19 },
   { player: 'Mike Reilly', opponent: 'Chagrin Falls', season_year: 2004, game_type: 'regular', saves: 18 },
-  { player: 'Braylon Lewis', opponent: 'Anthony Wayne', season_year: 2025, game_type: 'regular', saves: 18 },
+  { player: 'Braylon Lewis', opponent: 'Anthony Wayne', season_year: 2025, game_type: 'regular', saves: 18, goals_against: 10 },
   { player: 'Ian Horner', opponent: 'Oakwood', season_year: 2021, game_type: 'regular', saves: 17 },
   { player: 'Dan Lach', opponent: 'Walsh Jesuit', season_year: 2021, game_type: 'regular', saves: 16 },
   { player: 'Nicholas Bowers', opponent: 'St. Francis', season_year: 2024, game_type: 'regular', saves: 16 },
-  { player: 'Nicholas Bowers', opponent: 'Detroit Catholic Central', season_year: 2024, game_type: 'regular' },
-  { player: 'Parker Thayer', opponent: 'Kenston', season_year: 2017, game_type: 'regular' },
-  { player: 'Charlie Anderson', opponent: 'Chaminade-Julienne', season_year: 2022, game_type: 'regular' },
-  { player: 'Braylon Lewis', opponent: 'Brother Rice', season_year: 2025, game_type: 'regular' },
-  { player: 'Noah Houpt', opponent: 'St. Francis', season_year: 2016, game_type: 'regular' },
+  { player: 'Nicholas Bowers', opponent: 'Detroit Catholic Central', season_year: 2024, game_type: 'regular', shots_against: 30 },
+  { player: 'Parker Thayer', opponent: 'Kenston', season_year: 2017, game_type: 'regular', shots_against: 28 },
+  { player: 'Charlie Anderson', opponent: 'Chaminade-Julienne', season_year: 2022, game_type: 'regular', shots_against: 28 },
+  { player: 'Braylon Lewis', opponent: 'Brother Rice', season_year: 2025, game_type: 'regular', shots_against: 28 },
+  { player: 'Noah Houpt', opponent: 'St. Francis', season_year: 2016, game_type: 'regular', shots_against: 27 },
   { player: 'Mason Bowers', opponent: 'Southview', season_year: 2025, game_type: 'regular', caused_turnovers: 9 },
   { player: 'Jake Pieron', opponent: 'Southview', season_year: 2026, game_type: 'regular', caused_turnovers: 7 },
   { player: 'Jake Pieron', opponent: 'Walsh Jesuit', season_year: 2026, game_type: 'regular', caused_turnovers: 7 },
@@ -719,10 +727,10 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Tyler Zetocha', opponent: 'Rocky River', season_year: 2026, round: 16, game_type: 'playoff', faceoff_wins: 12 },
   { player: 'Owen Winkler', opponent: 'St. Francis Columbus', season_year: 2024, round: 2, game_type: 'playoff', faceoff_wins: 10 },
   { player: 'Sam Rodgers', opponent: 'Southview', season_year: 2019, round: 64, game_type: 'playoff', ground_balls: 8 },
-  { player: 'Dylan Sobb', opponent: 'St. Francis Toledo', season_year: 2026, round: 64, game_type: 'playoff', saves: 12 },
+  { player: 'Dylan Sobb', opponent: 'St. Francis Toledo', season_year: 2026, round: 64, game_type: 'playoff', saves: 12, goals_against: 6 },
   { player: 'Nicholas Bowers (8)/Ian Horner (2)', opponent: 'University School', season_year: 2024, round: 4, game_type: 'playoff', saves: 10 },
   { player: 'Braylon Lewis', opponent: 'Ottawa Hills', season_year: 2025, round: 64, game_type: 'playoff', saves: 9 },
-  { player: 'Braylon Lewis', opponent: 'St. Francis Toledo', season_year: 2025, round: 32, game_type: 'playoff' },
+  { player: 'Braylon Lewis', opponent: 'St. Francis Toledo', season_year: 2025, round: 32, game_type: 'playoff', shots_against: 20 },
   { player: 'Aiden Gage', opponent: 'Bowling Green', season_year: 2019, game_type: 'regular', faceoff_wins: 11, faceoff_losses: 0 },
   { player: 'Quinn Staten', opponent: 'Northview', season_year: 2021, game_type: 'regular', faceoff_wins: 10, faceoff_losses: 1 },
   { player: 'Jeff Szozda', opponent: 'Central', season_year: 2015, game_type: 'regular', faceoff_wins: 9, faceoff_losses: 1 },
