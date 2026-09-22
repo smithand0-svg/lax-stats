@@ -1346,7 +1346,7 @@ async function getSeasonBoards(view, resolvePlayer) {
             SUM(s.goals_against) AS goals_against
      FROM season_totals s
      JOIN players p ON p.id = s.player_id
-     WHERE ${gameTypeCondition(view)}
+     WHERE ${gameTypeCondition(view)} AND s.season_year IS NOT NULL
      GROUP BY p.id, p.first_name, p.last_name, p.graduation_year, s.season_year`
   );
 

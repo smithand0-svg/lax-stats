@@ -25,7 +25,7 @@
             SUM(s.goals_against) AS goals_against
      FROM season_totals s
      JOIN players p ON p.id = s.player_id
-     WHERE ${(0,k.s)(a)}
+     WHERE ${(0,k.s)(a)} AND s.season_year IS NOT NULL
      GROUP BY p.id, p.first_name, p.last_name, p.graduation_year, s.season_year`),d={};p.forEach(({key:e,compute:f})=>{let g=c.map(a=>({...a,value:f?f(a):Number(a[e])})).filter(a=>a.value>0),h=new Map;v.filter(b=>b.stat===e&&("combined"===a||b.game_type===a)).forEach(a=>{let c,d=(c=b(...G(a.player)),{...a,id:c?c.id:`static-season-${a.player}-${a.season_year}`,first_name:c?c.first_name:G(a.player)[0],last_name:c?c.last_name:G(a.player)[1],graduation_year:c?c.graduation_year:null,playerName:a.player,isStatic:!0,resolvedPlayer:!!c});if(g.some(a=>a.id===d.id&&Number(a.season_year)===d.season_year&&a.value>=d.value))return;let e=`${d.id}::${d.season_year}`,f=h.get(e);(!f||d.value>f.value)&&h.set(e,d)}),d[e]=A([...g,...h.values()])});let e={};return q.forEach(({key:b,numerator:d,denominator:f,minQualifier:g})=>{let h=g.season&&g.season[a];if(!h)return;let i=c.map(a=>{let b=f(a);return{...a,value:b>0?d(a)/b*100:0}}).filter(c=>B(c,h,d,f)||s(c,b,"season",a));e[b]=A(i)}),{boards:d,rateBoards:e}}async function E(a,b,c){let{rows:d}=await g.pool.query(`SELECT p.id AS player_id, p.first_name, p.last_name, p.graduation_year,
             g.opponent, g.season_year, g.game_date, g.round, g.game_type,
             gsl.goals, gsl.assists, gsl.shots, gsl.ground_balls, gsl.caused_turnovers,
