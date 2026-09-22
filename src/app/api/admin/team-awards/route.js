@@ -3,7 +3,7 @@ import { pool } from '@/lib/db';
 import { getDefaultTeamId, resolvePlayerId } from '@/lib/adminAwards';
 
 const TEAM_LEVELS = ['Varsity', 'JV Gold', 'JV Blue'];
-const AWARD_CATEGORIES = ['Coaches Award', 'Rookie Award', 'Anchor Award', 'E&A', 'Most Improved', 'D MVP', 'O MVP'];
+const AWARD_CATEGORIES = ['Coaches Award', 'Rookie Award', 'Anchor Award', 'E&A', 'Most Improved', 'D MVP', 'O MVP', 'MVP'];
 
 // GET ?season=YYYY -- list this season's team awards, newest-added first.
 export async function GET(request) {

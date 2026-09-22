@@ -7,7 +7,7 @@ import { KNOWN_SOURCES, POSITIONS, LABEL_SUGGESTIONS_BY_SOURCE } from '@/lib/awa
 
 const INPUT = 'border rounded px-3 py-2 text-sm w-full';
 const TEAM_LEVELS = ['Varsity', 'JV Gold', 'JV Blue'];
-const AWARD_CATEGORIES = ['Coaches Award', 'Rookie Award', 'Anchor Award', 'E&A', 'Most Improved', 'D MVP', 'O MVP'];
+const AWARD_CATEGORIES = ['Coaches Award', 'Rookie Award', 'Anchor Award', 'E&A', 'Most Improved', 'D MVP', 'O MVP', 'MVP'];
 
 function DeleteButton({ onConfirm }) {
   const [confirming, setConfirming] = useState(false);
