@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { jsonNoStore } from '@/lib/apiResponse';
 import { pool } from '@/lib/db';
 import { getDefaultTeamId } from '@/lib/adminAwards';
+
+export const dynamic = 'force-dynamic';
 
 export async function DELETE(request, { params }) {
   try {
@@ -11,11 +13,11 @@ export async function DELETE(request, { params }) {
       [id, teamId]
     );
     if (!rows[0]) {
-      return NextResponse.json({ error: 'Honor not found.' }, { status: 404 });
+      return jsonNoStore({ error: 'Honor not found.' }, { status: 404 });
     }
-    return NextResponse.json({ deleted: true });
+    return jsonNoStore({ deleted: true });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }

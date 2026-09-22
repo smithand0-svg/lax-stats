@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { jsonNoStore } from '@/lib/apiResponse';
 import { pool } from '@/lib/db';
 import { getDefaultTeamId, resolvePlayerId } from '@/lib/adminAwards';
+
+export const dynamic = 'force-dynamic';
 
 const TEAM_LEVELS = ['Varsity', 'JV Gold', 'JV Blue'];
 const AWARD_CATEGORIES = ['Coaches Award', 'Rookie Award', 'Anchor Award', 'E&A', 'Most Improved', 'D MVP', 'O MVP', 'MVP'];
@@ -12,7 +14,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const season = parseInt(searchParams.get('season'), 10);
     if (!Number.isFinite(season)) {
-      return NextResponse.json({ error: 'A season year is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A season year is required.' }, { status: 400 });
     }
     const { rows } = await pool.query(
       `SELECT id, season_year, team_level, award_category, player_id, player_name
@@ -21,10 +23,10 @@ export async function GET(request) {
        ORDER BY id DESC`,
       [teamId, season]
     );
-    return NextResponse.json({ awards: rows });
+    return jsonNoStore({ awards: rows });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }
 
@@ -39,16 +41,16 @@ export async function POST(request) {
     const graduationYear = body.graduationYear ? parseInt(body.graduationYear, 10) : null;
 
     if (!Number.isFinite(seasonYear)) {
-      return NextResponse.json({ error: 'A season year is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A season year is required.' }, { status: 400 });
     }
     if (!TEAM_LEVELS.includes(teamLevel)) {
-      return NextResponse.json({ error: `Team level must be one of: ${TEAM_LEVELS.join(', ')}.` }, { status: 400 });
+      return jsonNoStore({ error: `Team level must be one of: ${TEAM_LEVELS.join(', ')}.` }, { status: 400 });
     }
     if (!AWARD_CATEGORIES.includes(awardCategory)) {
-      return NextResponse.json({ error: `Award category must be one of: ${AWARD_CATEGORIES.join(', ')}.` }, { status: 400 });
+      return jsonNoStore({ error: `Award category must be one of: ${AWARD_CATEGORIES.join(', ')}.` }, { status: 400 });
     }
     if (!playerName) {
-      return NextResponse.json({ error: 'A player name is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A player name is required.' }, { status: 400 });
     }
 
     const playerId = await resolvePlayerId(playerName, graduationYear);
@@ -60,9 +62,9 @@ export async function POST(request) {
       [teamId, seasonYear, teamLevel, awardCategory, playerId, playerName]
     );
 
-    return NextResponse.json({ award: rows[0] });
+    return jsonNoStore({ award: rows[0] });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }

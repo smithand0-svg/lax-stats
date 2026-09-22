@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { jsonNoStore } from '@/lib/apiResponse';
 import { pool } from '@/lib/db';
 import { getDefaultTeamId, resolvePlayerId } from '@/lib/adminAwards';
+
+export const dynamic = 'force-dynamic';
 
 // GET ?season=YYYY -- list this season's external honors, newest-added first.
 export async function GET(request) {
@@ -9,7 +11,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const season = parseInt(searchParams.get('season'), 10);
     if (!Number.isFinite(season)) {
-      return NextResponse.json({ error: 'A season year is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A season year is required.' }, { status: 400 });
     }
     const { rows } = await pool.query(
       `SELECT id, season_year, grad_year, position, honor_source, honor_label, player_id, player_name, note
@@ -18,10 +20,10 @@ export async function GET(request) {
        ORDER BY id DESC`,
       [teamId, season]
     );
-    return NextResponse.json({ honors: rows });
+    return jsonNoStore({ honors: rows });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }
 
@@ -38,16 +40,16 @@ export async function POST(request) {
     const note = (body.note || '').trim() || null;
 
     if (!Number.isFinite(seasonYear)) {
-      return NextResponse.json({ error: 'A season year is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A season year is required.' }, { status: 400 });
     }
     if (!honorSource) {
-      return NextResponse.json({ error: 'An honor source is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'An honor source is required.' }, { status: 400 });
     }
     if (!honorLabel) {
-      return NextResponse.json({ error: 'An honor label is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'An honor label is required.' }, { status: 400 });
     }
     if (!playerName) {
-      return NextResponse.json({ error: 'A player name is required.' }, { status: 400 });
+      return jsonNoStore({ error: 'A player name is required.' }, { status: 400 });
     }
 
     // gradYear (player's class), not seasonYear, disambiguates a
@@ -62,9 +64,9 @@ export async function POST(request) {
       [teamId, playerId, playerName, position, honorSource, honorLabel, seasonYear, gradYear, note]
     );
 
-    return NextResponse.json({ honor: rows[0] });
+    return jsonNoStore({ honor: rows[0] });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }

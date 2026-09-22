@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { jsonNoStore } from '@/lib/apiResponse';
 import { pool } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 // Small dataset, same load-in-full-and-filter-client-side pattern as
 // /api/admin/opponents -- used by PlayerPicker for the awards admin
@@ -14,9 +16,9 @@ export async function GET() {
        WHERE t.slug = 'sjj'
        ORDER BY p.last_name, p.first_name`
     );
-    return NextResponse.json({ players });
+    return jsonNoStore({ players });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: err.message }, { status: 500 });
   }
 }
