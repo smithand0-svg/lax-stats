@@ -693,7 +693,6 @@ const STATIC_INDIVIDUAL_GAME_LINES = [
   { player: 'Mike Reilly', opponent: 'Chagrin Falls', season_year: 2004, game_type: 'regular', saves: 18 },
   { player: 'Braylon Lewis', opponent: 'Anthony Wayne', season_year: 2025, game_type: 'regular', saves: 18 },
   { player: 'Ian Horner', opponent: 'Oakwood', season_year: 2021, game_type: 'regular', saves: 17 },
-  { player: 'Nicholas Bowers', opponent: 'St. Francis', season_year: 2022, game_type: 'regular', saves: 17 },
   { player: 'Dan Lach', opponent: 'Walsh Jesuit', season_year: 2021, game_type: 'regular', saves: 16 },
   { player: 'Nicholas Bowers', opponent: 'St. Francis', season_year: 2024, game_type: 'regular', saves: 16 },
   { player: 'Nicholas Bowers', opponent: 'Detroit Catholic Central', season_year: 2024, game_type: 'regular' },
@@ -1460,6 +1459,7 @@ async function getGameBoards(view, canonicalizeOpponent, resolvePlayer) {
       (live) =>
         live.playerName.toLowerCase() === staticRow.playerName.toLowerCase() &&
         live.opponent === staticRow.opponent &&
+        Number(live.season_year) === Number(staticRow.season_year) &&
         live.game_date === staticRow.game_date &&
         Number(live[key] || 0) >= staticValue
     );
@@ -1472,14 +1472,17 @@ async function getGameBoards(view, canonicalizeOpponent, resolvePlayer) {
       .filter((r) => r.value > 0);
 
     // Static entries not covered by live, deduped against EACH OTHER by
-    // player+opponent+date+value too (same class of gap TM-16 found at
+    // player+opponent+SEASON+date too (same class of gap TM-16 found at
     // the team level -- two hand-typed rows for the same real game
-    // shouldn't both survive just because neither is "live").
+    // shouldn't both survive just because neither is "live"). season_year
+    // must be part of the key: most regular-season rows have no exact
+    // date, so without it, two DIFFERENT years against the same opponent
+    // collapse into "the same game" and only the higher value survives.
     const staticSurvivors = new Map();
     staticRows.forEach((r) => {
       const value = compute ? compute(r) : Number(r[key] || 0);
       if (!(value > 0) || isCoveredByLive(r, key)) return;
-      const dedupeKey = `${r.playerName.toLowerCase()}::${r.opponent}::${r.game_date}`;
+      const dedupeKey = `${r.playerName.toLowerCase()}::${r.opponent}::${r.season_year}::${r.game_date}`;
       const existing = staticSurvivors.get(dedupeKey);
       if (!existing || value > existing.value) {
         staticSurvivors.set(dedupeKey, { ...r, value });
@@ -1676,15 +1679,22 @@ export default async function LeaderboardPage({ searchParams }) {
 
   // Tie-break sort (oldest record shown first, site-wide convention) --
   // by first active year for career rows, by season year (then exact
-  // date, when known) for game rows. Season year must come first: most
-  // game rows have no exact date (not given in the source data), so
-  // comparing game_date alone left same-value ties effectively
-  // unsorted -- two rows from different years with no date both fell
-  // back to the same sentinel and compared equal.
+  // date, when known) for game rows.
+  //
+  // Game rows ALSO sort playoff-before-regular ahead of chronology --
+  // this fell out accidentally before (most regular rows have no exact
+  // date, so their '9999-99-99' fallback happened to sort after a
+  // playoff row's real date within the same year), but Andy confirmed
+  // he wants exactly this, so it's made deliberate here: within a tied
+  // value, a playoff performance shows before a regular-season one
+  // regardless of which year either happened in, then chronological
+  // within each of those two groups.
   function tieBreak(a, b) {
     if (scope === 'career') return firstActiveYear(a) - firstActiveYear(b);
     if (scope === 'season') return Number(a.season_year) - Number(b.season_year);
+    const typeRank = (r) => (r.game_type === 'playoff' ? 0 : 1);
     return (
+      typeRank(a) - typeRank(b) ||
       Number(a.season_year) - Number(b.season_year) ||
       (a.game_date || '9999-99-99').localeCompare(b.game_date || '9999-99-99')
     );
