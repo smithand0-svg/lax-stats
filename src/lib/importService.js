@@ -3,6 +3,7 @@ const { matchPlayer, MATCH } = require('./playerMatcher');
 const { matchOpponent, MATCH: OPPONENT_MATCH } = require('./opponentMatcher');
 const { parseHudlCsv, splitName } = require('./hudlParser');
 const { parseHudlTeamTotalsCsv } = require('./hudlTeamTotalsParser');
+const { recalcSeasonRecord } = require('./gameResults');
 
 /**
  * PHASE 1 — Preview an import. Read-only: touches the database only to
@@ -96,6 +97,9 @@ async function resolveOpponentAndGame(client, gameMeta) {
     );
   }
 
+  // A playoff game is never a league game, whatever the form sent.
+  const isLeagueGame = gameMeta.gameType === 'regular' && !!gameMeta.isLeagueGame;
+
   let gameId = gameMeta.gameId;
   if (gameId) {
     await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
@@ -106,12 +110,15 @@ async function resolveOpponentAndGame(client, gameMeta) {
     );
     if (existingGameRows[0]) {
       gameId = existingGameRows[0].id;
-      await client.query('UPDATE games SET updated_at = now() WHERE id = $1', [gameId]);
+      // TM-36: the league-game flag follows the most recent import of
+      // this game (both import forms send it), so a re-import is also
+      // how a wrong flag gets corrected.
+      await client.query('UPDATE games SET updated_at = now(), is_league_game = $2 WHERE id = $1', [gameId, isLeagueGame]);
     } else {
       const gameResult = await client.query(
-        `INSERT INTO games (team_id, opponent, game_date, season_year, game_type, round, import_source)
-         VALUES ($1, $2, $3, $4, $5, $6, 'hudl') RETURNING id`,
-        [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null]
+        `INSERT INTO games (team_id, opponent, game_date, season_year, game_type, round, import_source, is_league_game)
+         VALUES ($1, $2, $3, $4, $5, $6, 'hudl', $7) RETURNING id`,
+        [gameMeta.teamId, canonicalOpponent, gameMeta.gameDate || null, gameMeta.seasonYear, gameMeta.gameType, gameMeta.round || null, isLeagueGame]
       );
       gameId = gameResult.rows[0].id;
     }
@@ -206,6 +213,10 @@ async function commitImport(gameMeta, previewRows, resolutions, fileName) {
       [gameMeta.teamId, gameId, fileName || null, resolvedRows.length]
     );
 
+    // TM-36: refresh this season's calculated record (no-op unless the
+    // season is flagged auto_record), inside the same transaction.
+    await recalcSeasonRecord(client, gameMeta.teamId, gameMeta.seasonYear);
+
     await client.query('COMMIT');
     return { gameId, rowsWritten: resolvedRows.length };
   } catch (err) {
@@ -288,6 +299,10 @@ async function commitTeamImport(gameMeta, stats, fileName) {
       `INSERT INTO import_batches (team_id, game_id, file_name, row_count, status) VALUES ($1,$2,$3,1,'success')`,
       [gameMeta.teamId, gameId, fileName || null]
     );
+
+    // TM-36: refresh this season's calculated record (no-op unless the
+    // season is flagged auto_record), inside the same transaction.
+    await recalcSeasonRecord(client, gameMeta.teamId, gameMeta.seasonYear);
 
     await client.query('COMMIT');
     return { gameId };

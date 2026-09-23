@@ -91,8 +91,12 @@ export async function POST(request) {
     }
 
     await client.query(
-      `INSERT INTO program_seasons (team_id, season_year, head_coach, division, league_name) VALUES ($1, $2, $3, $4, $5)`,
-      [team.id, nextYear, headCoachForNextYear, division, currentLeagueName]
+      // auto_record = true: from here on, this season's W/L is
+      // calculated from imported game results (TM-36), not hand-entered.
+      // League W/L starts at 0-0 when the season has a league.
+      `INSERT INTO program_seasons (team_id, season_year, head_coach, division, league_name, auto_record, league_wins, league_losses)
+       VALUES ($1, $2, $3, $4, $5, true, $6, $6)`,
+      [team.id, nextYear, headCoachForNextYear, division, currentLeagueName, currentLeagueName ? 0 : null]
     );
 
     await client.query(

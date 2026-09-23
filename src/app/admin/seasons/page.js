@@ -2,13 +2,14 @@ import { pool } from '@/lib/db';
 import FinalizeButton from '@/components/FinalizeButton';
 import AdvanceSeasonButton from '@/components/AdvanceSeasonButton';
 import { BASE_PATH } from '@/lib/basePath';
+import { getUncountedGames } from '@/lib/gameResults';
 
 export const dynamic = 'force-dynamic';
 
 async function getSeasons() {
   const { rows } = await pool.query(
     `SELECT season_year, head_coach, division, total_wins, total_losses, finalized_at,
-            playoff_result, special_note, brothers_cup, league_name, league_finish
+            playoff_result, special_note, brothers_cup, league_name, league_finish, auto_record, team_id
      FROM program_seasons
      WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj')
      ORDER BY season_year DESC`
@@ -31,6 +32,19 @@ async function getCurrentSeason() {
 
 export default async function AdminSeasonsPage() {
   const [seasons, currentSeason] = await Promise.all([getSeasons(), getCurrentSeason()]);
+
+  // TM-36: for seasons whose record is calculated from games, list any
+  // game that currently counts as neither a win nor a loss (no score
+  // yet, usually a missing team-totals import, or a tied score), so a
+  // gap never silently shrinks the record.
+  const uncounted = {};
+  await Promise.all(
+    seasons
+      .filter((s) => s.auto_record)
+      .map(async (s) => {
+        uncounted[s.season_year] = await getUncountedGames(s.team_id, s.season_year);
+      })
+  );
 
   return (
     <main className="max-w-3xl mx-auto p-8">
@@ -99,6 +113,24 @@ export default async function AdminSeasonsPage() {
                 <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{s.head_coach || '—'}</td>
                 <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">
                   {s.total_wins}-{s.total_losses}
+                  <span
+                    className="ml-2 text-xs text-gray-400"
+                    title={s.auto_record ? 'Calculated from imported game results' : 'Hand-entered'}
+                  >
+                    {s.auto_record ? 'auto' : 'manual'}
+                  </span>
+                  {(uncounted[s.season_year] || []).length > 0 && (
+                    <div className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                      Not counted:{' '}
+                      {uncounted[s.season_year]
+                        .map((g) =>
+                          `${g.opponent}${g.game_date ? ` (${new Date(g.game_date).toISOString().slice(5, 10)})` : ''}${
+                            g.goals_for === null || g.goals_against === null ? ', no score' : `, tied ${g.goals_for}-${g.goals_against}`
+                          }`
+                        )
+                        .join('; ')}
+                    </div>
+                  )}
                 </td>
                 <td className="py-2 pr-4">
                   {finalized ? (

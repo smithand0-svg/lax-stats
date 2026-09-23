@@ -31,7 +31,7 @@ export default function ImportPage() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [resolutions, setResolutions] = useState({});
-  const [gameMeta, setGameMeta] = useState({ opponent: '', seasonYear: new Date().getFullYear(), gameType: 'regular', gameDate: '', round: '' });
+  const [gameMeta, setGameMeta] = useState({ opponent: '', seasonYear: new Date().getFullYear(), gameType: 'regular', gameDate: '', round: '', isLeagueGame: false });
   const roundRequiredButMissing = gameMeta.gameType === 'playoff' && !gameMeta.round;
   const [status, setStatus] = useState('idle'); // idle | previewing | ready | committing | done | error
   const [errorMsg, setErrorMsg] = useState('');
@@ -188,11 +188,21 @@ export default function ImportPage() {
             <select
               className="border rounded px-3 py-2"
               value={gameMeta.gameType}
-              onChange={(e) => setGameMeta({ ...gameMeta, gameType: e.target.value, round: '' })}
+              onChange={(e) => setGameMeta({ ...gameMeta, gameType: e.target.value, round: '', isLeagueGame: false })}
             >
               <option value="regular">Regular season</option>
               <option value="playoff">Playoff</option>
             </select>
+            {gameMeta.gameType === 'regular' && (
+              <label className="flex items-center gap-2 text-sm px-1">
+                <input
+                  type="checkbox"
+                  checked={!!gameMeta.isLeagueGame}
+                  onChange={(e) => setGameMeta({ ...gameMeta, isLeagueGame: e.target.checked })}
+                />
+                League game
+              </label>
+            )}
             {gameMeta.gameType === 'playoff' && (
               <select
                 className="border rounded px-3 py-2"
