@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { pool } from '@/lib/db';
+import { getCoachingMatrix } from '@/lib/coachingMatrix';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,10 +73,14 @@ export default async function CoachPage({ params }) {
   const person = await getStaffMember(id);
   if (!person) notFound();
 
-  const [roles, varsitySeasons, honors] = await Promise.all([
+  // TM-43: the head-to-head matrix is a HEAD COACH record (the tenure
+  // the spreadsheet tracks), keyed by program_seasons.head_coach, which
+  // staff names were backfilled from (db/035).
+  const [roles, varsitySeasons, honors, matrix] = await Promise.all([
     getAllRoles(id),
     getVarsitySeasons(id),
     getHonors(id),
+    getCoachingMatrix(`${person.first_name} ${person.last_name}`),
   ]);
 
   const careerRegularW = varsitySeasons.reduce((s, y) => s + y.regular_wins, 0);
@@ -183,6 +188,52 @@ export default async function CoachPage({ params }) {
               </tbody>
             </table>
           </div>
+        </>
+      )}
+
+      {matrix && (
+        <>
+          <h2 className="text-lg font-semibold mb-1 border-b pb-1">Head-to-Head as Head Coach</h2>
+          {matrix.noDetail ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Detailed opponent data unavailable.</p>
+          ) : (
+          <>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+            Record against every opponent faced as head coach. Win % is over all games.
+          </p>
+          <div className="overflow-x-auto mb-8">
+            <table className="text-sm border-collapse w-full">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="py-2 pr-4">Opponent</th>
+                  <th className="py-2 pr-4">Overall</th>
+                  <th className="py-2 pr-4">Win %</th>
+                  <th className="py-2 pr-4">Regular</th>
+                  <th className="py-2 pr-4">Playoffs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...matrix.rows, { opponent: 'Total', ...matrix.totals, isTotal: true }].map((r) => (
+                  <tr
+                    key={r.opponent + (r.isTotal ? '-total' : '')}
+                    className={`border-b border-gray-100 dark:border-gray-800 ${r.isTotal ? 'font-semibold' : ''}`}
+                  >
+                    <td className="py-1.5 pr-4">{r.opponent}</td>
+                    <td className="py-1.5 pr-4">{r.rw + r.pw}-{r.rl + r.pl}</td>
+                    <td className="py-1.5 pr-4">{fmtPct(winPct(r.rw + r.pw, r.rl + r.pl))}</td>
+                    <td className="py-1.5 pr-4 text-gray-600 dark:text-gray-400">
+                      {r.rw + r.rl > 0 ? `${r.rw}-${r.rl}` : '—'}
+                    </td>
+                    <td className="py-1.5 pr-4 text-gray-600 dark:text-gray-400">
+                      {r.pw + r.pl > 0 ? `${r.pw}-${r.pl}` : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          </>
+          )}
         </>
       )}
 
