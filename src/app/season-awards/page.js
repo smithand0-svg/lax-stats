@@ -40,7 +40,10 @@ export default async function SeasonAwardsPage({ searchParams }) {
 
   return (
     <main key={tab} className="max-w-5xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-1">Season Awards</h1>
+      <Link href="/" className="text-sm text-gray-500 dark:text-gray-400 underline">
+        ← Home
+      </Link>
+      <h1 className="text-3xl font-bold mt-2 mb-1">Season Awards</h1>
       <p className="text-gray-500 dark:text-gray-400 mb-4">
         {tab === 'awards'
           ? 'Coaches Award, Rookie Award, Anchor Award, and level-specific E&A / Most Improved / MVP awards, by season.'
