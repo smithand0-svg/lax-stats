@@ -118,13 +118,32 @@ function RankedList({ items, renderLabel, renderValue }) {
   );
 }
 
+async function getStaffIdByName() {
+  const { rows } = await pool.query(
+    `SELECT id, first_name || ' ' || last_name AS full_name FROM staff
+     WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj')`
+  );
+  const map = {};
+  for (const r of rows) map[r.full_name] = r.id;
+  return map;
+}
+
+// Falls back to plain text for any name that isn't in the staff table
+// yet (e.g. a coach added to program_seasons but never backfilled into
+// staff) -- never a broken link.
+function CoachName({ name, staffIds }) {
+  const id = staffIds[name];
+  return id ? <Link href={`/coaches/${id}`} className="underline">{name}</Link> : name;
+}
+
 export default async function CoachingStatsPage({ searchParams }) {
   const { view: rawView } = await searchParams;
   const tab = resolveTab(rawView);
 
-  const [careerStats, yearRows] = await Promise.all([
+  const [careerStats, yearRows, staffIds] = await Promise.all([
     getCoachingCareerStats(),
     pool.query('SELECT MAX(season_year) AS y FROM program_seasons WHERE head_coach IS NOT NULL'),
+    getStaffIdByName(),
   ]);
   const mostRecentYear = yearRows.rows[0].y;
 
@@ -179,7 +198,7 @@ export default async function CoachingStatsPage({ searchParams }) {
             items={bySeasons}
             renderLabel={(c) => (
               <>
-                {c.head_coach}{' '}
+                <CoachName name={c.head_coach} staffIds={staffIds} />{' '}
                 <span className="text-gray-400 dark:text-gray-500 text-xs">
                   ({formatCoachYears(c.years, mostRecentYear)})
                 </span>
@@ -199,7 +218,7 @@ export default async function CoachingStatsPage({ searchParams }) {
                 items={singleSeasonBoard}
                 renderLabel={(r) => (
                   <>
-                    {r.head_coach} <span className="text-gray-400 dark:text-gray-500 text-xs">({r.season_year})</span>
+                    <CoachName name={r.head_coach} staffIds={staffIds} /> <span className="text-gray-400 dark:text-gray-500 text-xs">({r.season_year})</span>
                   </>
                 )}
                 renderValue={(r) => r.value}
@@ -212,7 +231,7 @@ export default async function CoachingStatsPage({ searchParams }) {
                 items={careerWinsBoard}
                 renderLabel={(c) => (
                   <>
-                    {c.head_coach}{' '}
+                    <CoachName name={c.head_coach} staffIds={staffIds} />{' '}
                     <span className="text-gray-400 dark:text-gray-500 text-xs">
                       ({formatCoachYears(c.years, mostRecentYear)})
                     </span>
@@ -229,7 +248,7 @@ export default async function CoachingStatsPage({ searchParams }) {
               items={winPctBoard}
               renderLabel={(c) => (
                 <>
-                  {c.head_coach}{' '}
+                  <CoachName name={c.head_coach} staffIds={staffIds} />{' '}
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     ({c[fields.winsKey]}-{c[fields.lossKey]})
                   </span>

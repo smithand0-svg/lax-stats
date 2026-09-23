@@ -1,2 +1,2 @@
-:HL["/lax-stats/_next/static/css/d88fb8f11bbeb291.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"_not-found","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"YcF7Wr7bYuaiCYPyHsl7Q"}
+:HL["/lax-stats/_next/static/css/d32e515c41708f70.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"_not-found","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"jUaIQmYYYxWTc_R5-Q4BD"}

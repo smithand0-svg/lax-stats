@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BASE_PATH } from '@/lib/basePath';
 import { TEAM_LEVELS, ROLE_SUGGESTIONS } from '@/lib/awardOptions';
 
@@ -142,7 +143,12 @@ function StaffRow({ person, onChange }) {
             {person.seasons.length} season{person.seasons.length === 1 ? '' : 's'}
           </span>
         </button>
-        <DeleteButton onConfirm={removeStaff} label="Remove person" />
+        <div className="flex items-center gap-3">
+          <Link href={`/coaches/${person.id}`} className="text-xs text-gray-400 hover:text-slate-800 underline">
+            View public page
+          </Link>
+          <DeleteButton onConfirm={removeStaff} label="Remove person" />
+        </div>
       </div>
 
       {expanded && (
