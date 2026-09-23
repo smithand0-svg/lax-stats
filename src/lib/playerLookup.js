@@ -35,8 +35,14 @@ function prefix3(s) {
 // rather than guessing or silently creating a row from a page render.
 function makePlayerResolver(players) {
   const cache = new Map();
-  return (firstName, lastName, graduationYear) => {
-    const key = `${normalize(firstName)}|${normalize(lastName)}|${graduationYear || ''}`;
+  // activeYears (optional): { first, last } seasons the record being
+  // resolved comes from. Used only to ELIMINATE candidates who could not
+  // possibly have played then (see below), never to pick between two who
+  // could have.
+  return (firstName, lastName, graduationYear, activeYears) => {
+    const key = `${normalize(firstName)}|${normalize(lastName)}|${graduationYear || ''}|${
+      activeYears ? `${activeYears.first}-${activeYears.last}` : ''
+    }`;
     if (cache.has(key)) return cache.get(key);
 
     let matches = players.filter(
@@ -53,6 +59,24 @@ function makePlayerResolver(players) {
     if (matches.length > 1 && graduationYear) {
       const narrowed = matches.filter((p) => p.graduation_year === graduationYear);
       if (narrowed.length > 0) matches = narrowed;
+    }
+    // Still ambiguous, but the record says WHEN it happened: rule out
+    // anyone who can't have been on the roster then. A player active in
+    // season Y graduates in Y through Y+4 (allowing an 8th-grader on the
+    // team), so a 2014 grad cannot own a 2021-2022 stat. Only if exactly
+    // one candidate survives is it linked. This is elimination, not
+    // guessing: two plausible candidates still resolve to null. A
+    // candidate with no graduation year on file can't be ruled out.
+    // Found live 2026-09-23: the two Nate Millers ('14 grad and the
+    // 2021-2022 faceoff man) left his historical faceoff records
+    // unlinked, so they showed as a second Nate Miller on Player Records.
+    if (matches.length > 1 && activeYears && activeYears.first && activeYears.last) {
+      const possible = matches.filter(
+        (p) =>
+          !p.graduation_year ||
+          (p.graduation_year >= activeYears.last && p.graduation_year <= activeYears.first + 4)
+      );
+      if (possible.length === 1) matches = possible;
     }
     // Still ambiguous -- two+ real players share this name and grad
     // year didn't (or couldn't) narrow it to one. A silent arbitrary

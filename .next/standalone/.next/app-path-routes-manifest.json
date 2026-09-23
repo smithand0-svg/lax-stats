@@ -31,14 +31,14 @@
   "/college-honors/page": "/college-honors",
   "/leaderboard/page": "/leaderboard",
   "/page": "/",
-  "/admin/college-commitments/page": "/admin/college-commitments",
+  "/admin/awards/page": "/admin/awards",
   "/search/page": "/search",
   "/season-awards/page": "/season-awards",
   "/season-history/page": "/season-history",
   "/seasons/[year]/page": "/seasons/[year]",
   "/seasons/page": "/seasons",
   "/team-stats/page": "/team-stats",
+  "/admin/college-commitments/page": "/admin/college-commitments",
   "/admin/login/page": "/admin/login",
-  "/admin/awards/page": "/admin/awards",
   "/players/[id]/page": "/players/[id]"
 }

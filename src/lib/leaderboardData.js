@@ -1335,7 +1335,7 @@ export async function getCareerBoards(view, resolvePlayer, limit = 10) {
   );
 
   function resolveStatic(r) {
-    const match = resolvePlayer(...splitName(r.player));
+    const match = resolvePlayer(...splitName(r.player), undefined, { first: r.firstYear, last: r.lastYear });
     const displayYears = r.firstYear === r.lastYear ? String(r.firstYear) : `${r.firstYear}-${r.lastYear}`;
     return {
       ...r,
@@ -1425,7 +1425,7 @@ export async function getSeasonBoards(view, resolvePlayer, limit = 10) {
   );
 
   function resolveStatic(r) {
-    const match = resolvePlayer(...splitName(r.player));
+    const match = resolvePlayer(...splitName(r.player), undefined, { first: r.season_year, last: r.season_year });
     return {
       ...r,
       id: match ? match.id : `static-season-${r.player}-${r.season_year}`,
@@ -1519,7 +1519,7 @@ export async function getGameBoards(view, canonicalizeOpponent, resolvePlayer, l
 
   const staticFiltered = STATIC_INDIVIDUAL_GAME_LINES.filter((r) => view === 'combined' || r.game_type === view);
   const staticRows = staticFiltered.map((r) => {
-    const match = resolvePlayer(...splitName(r.player), r.graduationYear);
+    const match = resolvePlayer(...splitName(r.player), r.graduationYear, { first: r.season_year, last: r.season_year });
     return {
       ...r,
       player_id: match ? match.id : `static-${r.player}-${r.game_date}`,
