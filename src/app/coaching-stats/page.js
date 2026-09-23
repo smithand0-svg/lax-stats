@@ -170,7 +170,7 @@ export default async function CoachingStatsPage({ searchParams }) {
 
   return (
     <main className="max-w-5xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-1">Coaching Stats</h1>
+      <h1 className="text-3xl font-bold mb-1">Coaches</h1>
       <p className="text-gray-500 dark:text-gray-400">Program history since 1990</p>
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">*2020 season cancelled due to COVID</p>
 

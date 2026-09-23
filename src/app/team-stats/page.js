@@ -598,7 +598,7 @@ export default async function TeamStatsPage({ searchParams }) {
 
   return (
     <main key={view} className="max-w-5xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-1">Team Stats</h1>
+      <h1 className="text-3xl font-bold mb-1">Team Records</h1>
       <p className="text-gray-500 dark:text-gray-400 mb-4">
         Live game data combined with historical program records
       </p>

@@ -265,12 +265,6 @@
       "namedRegex": "^/college\\-honors(?:/)?$"
     },
     {
-      "page": "/debug",
-      "regex": "^/debug(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/debug(?:/)?$"
-    },
-    {
       "page": "/favicon.ico",
       "regex": "^/favicon\\.ico(?:/)?$",
       "routeKeys": {},

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { pool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -11,14 +12,19 @@ function teamNumber(seasonYear) {
 }
 
 export default async function SeasonHistoryPage() {
-  const { rows } = await pool.query(
-    `SELECT * FROM program_seasons ORDER BY season_year ASC`
-  );
+  const [{ rows }, { rows: statYears }] = await Promise.all([
+    pool.query(`SELECT * FROM program_seasons ORDER BY season_year ASC`),
+    // TM-29: years that have a season stats page (/seasons/[year]), so
+    // Year by Year can link each one. Years with no player stats on
+    // record stay plain text rather than linking to an empty page.
+    pool.query(`SELECT DISTINCT season_year FROM season_totals WHERE season_year IS NOT NULL`),
+  ]);
+  const hasStats = new Set(statYears.map((r) => Number(r.season_year)));
 
   return (
     <main className="max-w-6xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-1">Season History</h1>
-      <p className="text-gray-500 dark:text-gray-400 mb-8">Program record since 1990</p>
+      <h1 className="text-3xl font-bold mb-1">Year by Year</h1>
+      <p className="text-gray-500 dark:text-gray-400 mb-8">Program record since 1990. Select a year to see that season&apos;s player stats.</p>
 
       <div className="overflow-x-auto">
         <table className="text-sm border-collapse w-full">
@@ -40,7 +46,15 @@ export default async function SeasonHistoryPage() {
             {rows.map((row) => (
               <tr key={row.season_year} className="border-b">
                 <td className="py-2 pr-4 text-gray-500 dark:text-gray-400">{teamNumber(row.season_year)}</td>
-                <td className="pr-4 font-medium">{row.season_year}</td>
+                <td className="pr-4 font-medium">
+                  {hasStats.has(Number(row.season_year)) ? (
+                    <Link href={`/seasons/${row.season_year}`} className="underline decoration-sjj-gold decoration-2 underline-offset-4">
+                      {row.season_year}
+                    </Link>
+                  ) : (
+                    row.season_year
+                  )}
+                </td>
                 <td className="pr-4">{row.head_coach || '—'}</td>
                 <td className="pr-4">{row.division ?? '—'}</td>
                 <td className="pr-4">
