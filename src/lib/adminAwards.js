@@ -24,4 +24,22 @@ async function resolvePlayerId(playerName, graduationYear) {
   return match ? match.id : null;
 }
 
-module.exports = { getDefaultTeamId, resolvePlayerId };
+// Same idea as resolvePlayerId, but for staff -- last name + first-3-
+// letters fuzzy match against the staff table. No grad-year concept
+// for staff, so nothing to disambiguate a same-name collision with
+// yet (not expected to come up given how small the coaching staff
+// list is, but if it ever does, this returns the first match rather
+// than guessing wrong -- worth revisiting if it actually happens).
+async function resolveStaffId(staffName) {
+  const { firstName, lastName } = splitName(staffName);
+  const { rows: matches } = await pool.query(
+    `SELECT id FROM staff
+     WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj')
+       AND lower(last_name) = lower($1)
+       AND left(lower(first_name), 3) = left(lower($2), 3)`,
+    [lastName, firstName]
+  );
+  return matches[0] ? matches[0].id : null;
+}
+
+module.exports = { getDefaultTeamId, resolvePlayerId, resolveStaffId };

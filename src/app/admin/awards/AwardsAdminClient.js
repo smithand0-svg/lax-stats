@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { BASE_PATH } from '@/lib/basePath';
 import PlayerPicker from '@/components/PlayerPicker';
+import StaffPicker from '@/components/StaffPicker';
 import { KNOWN_SOURCES, POSITIONS, LABEL_SUGGESTIONS_BY_SOURCE } from '@/lib/awardOptions';
 
 const INPUT = 'border rounded px-3 py-2 text-sm w-full';
@@ -172,6 +173,7 @@ function SeasonHonorsPanel({ seasonYear }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
+    recipientType: 'player',
     honorSource: '',
     honorLabel: '',
     position: '',
@@ -237,6 +239,22 @@ function SeasonHonorsPanel({ seasonYear }) {
         fully known. Grad year is the player&apos;s own class year, separate from the season the honor was earned.
       </p>
 
+      <div className="flex gap-2 mb-3">
+        {['player', 'staff'].map((t) => (
+          <button
+            key={t}
+            onClick={() => setForm((f) => ({ ...f, recipientType: t, playerName: '', graduationYear: '' }))}
+            className={
+              form.recipientType === t
+                ? 'text-xs px-2 py-1 rounded bg-slate-800 text-white'
+                : 'text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+            }
+          >
+            {t === 'player' ? 'Player' : 'Staff'}
+          </button>
+        ))}
+      </div>
+
       <div className="grid sm:grid-cols-2 gap-2 mb-2">
         <input
           className={INPUT}
@@ -282,13 +300,21 @@ function SeasonHonorsPanel({ seasonYear }) {
 
       <div className="flex flex-wrap gap-2 mb-4 items-start">
         <div style={{ minWidth: '18rem' }} className="flex-1">
-          <PlayerPicker
-            className={INPUT}
-            name={form.playerName}
-            onNameChange={(v) => setForm((f) => ({ ...f, playerName: v }))}
-            graduationYear={form.graduationYear}
-            onGraduationYearChange={(v) => setForm((f) => ({ ...f, graduationYear: v }))}
-          />
+          {form.recipientType === 'staff' ? (
+            <StaffPicker
+              className={INPUT}
+              name={form.playerName}
+              onNameChange={(v) => setForm((f) => ({ ...f, playerName: v }))}
+            />
+          ) : (
+            <PlayerPicker
+              className={INPUT}
+              name={form.playerName}
+              onNameChange={(v) => setForm((f) => ({ ...f, playerName: v }))}
+              graduationYear={form.graduationYear}
+              onGraduationYearChange={(v) => setForm((f) => ({ ...f, graduationYear: v }))}
+            />
+          )}
         </div>
         <button
           onClick={handleAdd}
@@ -312,6 +338,9 @@ function SeasonHonorsPanel({ seasonYear }) {
                 <td className="py-1.5 pr-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">{h.honor_source}</td>
                 <td className="py-1.5 pr-3 font-medium whitespace-nowrap">{h.honor_label}</td>
                 <td className="py-1.5 pr-3 whitespace-nowrap">
+                  {h.recipient_type === 'staff' && (
+                    <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">[Staff]</span>
+                  )}
                   {h.player_name}{h.position ? ` (${h.position})` : ''}{h.grad_year ? ` '${String(h.grad_year).slice(-2)}` : ''}
                 </td>
                 <td className="py-1.5 pr-3 text-gray-400 dark:text-gray-500">{h.note || ''}</td>

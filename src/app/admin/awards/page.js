@@ -23,6 +23,9 @@ export default async function AdminAwardsPage() {
           <a href={`${BASE_PATH}/admin/college-commitments`} className="text-sm text-gray-500 dark:text-gray-400 underline">
             College Commitments
           </a>
+          <a href={`${BASE_PATH}/admin/staff`} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            Coaching Staff
+          </a>
         </div>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">

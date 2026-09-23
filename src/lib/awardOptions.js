@@ -35,4 +35,11 @@ const LABEL_SUGGESTIONS_BY_SOURCE = {
   'USA Lacrosse': ['All-American', 'Academic All-American', 'Bob Scott Award'],
 };
 
-module.exports = { KNOWN_SOURCES, POSITIONS, LABEL_SUGGESTIONS_BY_SOURCE };
+const TEAM_LEVELS = ['Varsity', 'JV Gold', 'JV Blue'];
+
+// Suggestions only, not a validated enum -- staff_seasons.role has no
+// DB constraint (coaching titles vary too much to lock down; Andy did
+// not give an exhaustive list the way he did for award categories).
+const ROLE_SUGGESTIONS = ['Head Coach', 'Assistant Coach', 'Volunteer Assistant', 'Goalie Coach'];
+
+module.exports = { KNOWN_SOURCES, POSITIONS, LABEL_SUGGESTIONS_BY_SOURCE, TEAM_LEVELS, ROLE_SUGGESTIONS };

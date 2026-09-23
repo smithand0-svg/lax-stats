@@ -56,6 +56,31 @@
       "namedRegex": "^/api/admin/seasons/(?<nxtPyear>[^/]+?)/finalize(?:/)?$"
     },
     {
+      "page": "/api/admin/staff/[id]",
+      "regex": "^/api/admin/staff/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/staff/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/staff/[id]/seasons",
+      "regex": "^/api/admin/staff/([^/]+?)/seasons(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/staff/(?<nxtPid>[^/]+?)/seasons(?:/)?$"
+    },
+    {
+      "page": "/api/admin/staff/[id]/seasons/[seasonId]",
+      "regex": "^/api/admin/staff/([^/]+?)/seasons/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid",
+        "nxtPseasonId": "nxtPseasonId"
+      },
+      "namedRegex": "^/api/admin/staff/(?<nxtPid>[^/]+?)/seasons/(?<nxtPseasonId>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/team-awards/[id]",
       "regex": "^/api/admin/team\\-awards/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -130,6 +155,12 @@
       "namedRegex": "^/admin/seasons(?:/)?$"
     },
     {
+      "page": "/admin/staff",
+      "regex": "^/admin/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/staff(?:/)?$"
+    },
+    {
       "page": "/api/admin/college-commitments",
       "regex": "^/api/admin/college\\-commitments(?:/)?$",
       "routeKeys": {},
@@ -194,6 +225,12 @@
       "regex": "^/api/admin/seasons/advance(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/admin/seasons/advance(?:/)?$"
+    },
+    {
+      "page": "/api/admin/staff",
+      "regex": "^/api/admin/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/staff(?:/)?$"
     },
     {
       "page": "/api/admin/team-awards",

@@ -18,7 +18,7 @@ async function getHonorsForSeason(season) {
   const { rows } = await pool.query(
     `SELECT player_name, position, honor_source, honor_label
      FROM season_honors
-     WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj') AND season_year = $1
+     WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj') AND season_year = $1 AND recipient_type = 'player'
      ORDER BY player_name`,
     [season]
   );

@@ -16,6 +16,9 @@ export default function AdminCollegeCommitmentsPage() {
           <a href={`${BASE_PATH}/admin/seasons`} className="text-sm text-gray-500 dark:text-gray-400 underline">
             Season Finalization
           </a>
+          <a href={`${BASE_PATH}/admin/staff`} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            Coaching Staff
+          </a>
         </div>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">

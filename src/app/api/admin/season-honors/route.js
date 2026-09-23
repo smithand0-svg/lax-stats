@@ -1,10 +1,11 @@
 import { jsonNoStore } from '@/lib/apiResponse';
 import { pool } from '@/lib/db';
-import { getDefaultTeamId, resolvePlayerId } from '@/lib/adminAwards';
+import { getDefaultTeamId, resolvePlayerId, resolveStaffId } from '@/lib/adminAwards';
 
 export const dynamic = 'force-dynamic';
 
-// GET ?season=YYYY -- list this season's external honors, newest-added first.
+// GET ?season=YYYY -- list this season's external honors (both player
+// and staff recipients), newest-added first.
 export async function GET(request) {
   try {
     const teamId = await getDefaultTeamId();
@@ -14,9 +15,9 @@ export async function GET(request) {
       return jsonNoStore({ error: 'A season year is required.' }, { status: 400 });
     }
     const { rows } = await pool.query(
-      `SELECT id, season_year, grad_year, position, honor_source, honor_label, player_id, player_name, note
+      `SELECT id, season_year, grad_year, position, honor_source, honor_label, player_id, staff_id, player_name, note, recipient_type
        FROM season_honors
-       WHERE team_id = $1 AND season_year = $2 AND recipient_type = 'player'
+       WHERE team_id = $1 AND season_year = $2
        ORDER BY id DESC`,
       [teamId, season]
     );
@@ -31,12 +32,13 @@ export async function POST(request) {
   try {
     const teamId = await getDefaultTeamId();
     const body = await request.json();
+    const recipientType = body.recipientType === 'staff' ? 'staff' : 'player';
     const seasonYear = parseInt(body.seasonYear, 10);
     const gradYear = body.gradYear ? parseInt(body.gradYear, 10) : null;
     const position = (body.position || '').trim() || null;
     const honorSource = (body.honorSource || '').trim();
     const honorLabel = (body.honorLabel || '').trim();
-    const playerName = (body.playerName || '').trim();
+    const recipientName = (body.playerName || '').trim();
     const note = (body.note || '').trim() || null;
 
     if (!Number.isFinite(seasonYear)) {
@@ -48,20 +50,22 @@ export async function POST(request) {
     if (!honorLabel) {
       return jsonNoStore({ error: 'An honor label is required.' }, { status: 400 });
     }
-    if (!playerName) {
-      return jsonNoStore({ error: 'A player name is required.' }, { status: 400 });
+    if (!recipientName) {
+      return jsonNoStore({ error: 'A recipient name is required.' }, { status: 400 });
     }
 
     // gradYear (player's class), not seasonYear, disambiguates a
     // same-name collision -- same convention used everywhere else.
-    const playerId = await resolvePlayerId(playerName, gradYear);
+    // Staff have no grad-year concept at all.
+    const playerId = recipientType === 'player' ? await resolvePlayerId(recipientName, gradYear) : null;
+    const staffId = recipientType === 'staff' ? await resolveStaffId(recipientName) : null;
 
     const { rows } = await pool.query(
       `INSERT INTO season_honors
-         (team_id, recipient_type, player_id, player_name, position, honor_source, honor_label, season_year, grad_year, note)
-       VALUES ($1, 'player', $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, season_year, grad_year, position, honor_source, honor_label, player_id, player_name, note`,
-      [teamId, playerId, playerName, position, honorSource, honorLabel, seasonYear, gradYear, note]
+         (team_id, recipient_type, player_id, staff_id, player_name, position, honor_source, honor_label, season_year, grad_year, note)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, season_year, grad_year, position, honor_source, honor_label, player_id, staff_id, player_name, note, recipient_type`,
+      [teamId, recipientType, playerId, staffId, recipientName, position, honorSource, honorLabel, seasonYear, gradYear, note]
     );
 
     return jsonNoStore({ honor: rows[0] });
