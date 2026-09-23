@@ -13,6 +13,15 @@
 // Brad Lay) have no opponent-level detail in the source, so they have
 // no rows here.
 //
+// One correction to the spreadsheet (2026-09-23): the McComish sheet
+// totaled 76-75 against the program's 76-76. Reconciled game by game
+// against Game_History.xlsx (2007-2014 tabs plus Playoff Game Details):
+// every opponent matched except two. Sylvania Maple Leafs (2007-2009)
+// is 2-3, not 3-2. Sylvania Northview (2010-2014) is 6-0, not 5-0,
+// with one playoff win (5/19/2011), so 5-0 regular, not 4-0. After the
+// fix McComish is 71-68 regular, 5-8 playoffs, 76-76, matching Season
+// History.
+//
 // Row shape: [head coach, opponent, regular W, regular L, playoff W, playoff L]
 export const COACHING_MATRIX_BASELINE = [
   ["Andrew Smith", "Anthony Wayne", 4, 0, 0, 0],
@@ -142,8 +151,8 @@ export const COACHING_MATRIX_BASELINE = [
   ["Mike McComish", "St. Ignatius (Prep)", 1, 6, 0, 0],
   ["Mike McComish", "Strongsville", 0, 1, 0, 1],
   ["Mike McComish", "Summit Country Day", 0, 1, 0, 0],
-  ["Mike McComish", "Sylvania Maple Leafs", 3, 2, 0, 0],
-  ["Mike McComish", "Sylvania Northview", 4, 0, 1, 0],
+  ["Mike McComish", "Sylvania Maple Leafs", 2, 3, 0, 0], // corrected from 3-2, see header
+  ["Mike McComish", "Sylvania Northview", 5, 0, 1, 0], // corrected from 4-0 regular, see header
   ["Mike McComish", "Sylvania Southview", 0, 6, 0, 2],
   ["Mike McComish", "Thomas Worthington", 0, 2, 0, 2],
   ["Mike McComish", "Toledo Central Catholic", 5, 0, 0, 0],
