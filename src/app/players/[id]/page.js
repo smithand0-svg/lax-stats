@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { pool } from '@/lib/db';
 import ViewToggle from '@/components/ViewToggle';
 import { resolveView, gameTypeCondition } from '@/lib/viewFilter';
+import { getPlayerAccolades } from '@/lib/playerAccolades';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,6 +133,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
 
   const honors = await getHonors(id);
   const { teamAwards, externalHonors } = await getPlayerAwards(id);
+  const accolades = await getPlayerAccolades(player.id);
 
   // Career totals under "combined" always determine which stat columns
   // are shown, so switching the toggle doesn't make columns jump around
@@ -213,6 +215,51 @@ export default async function PlayerProfilePage({ params, searchParams }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {accolades.length > 0 && (
+        <>
+          <h2 className="text-lg font-semibold mt-10 mb-1 border-b pb-1">Accolades</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+            Where {player.first_name} currently ranks on the program&apos;s all-time leaderboards: top 10 single
+            games, top 25 seasons and careers. Shown for every view, independent of the toggle above.
+          </p>
+          {accolades.map((v) => (
+            <div key={v.view} className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">{v.label}</h3>
+              <div className="grid sm:grid-cols-3 gap-6">
+                {v.tiers.map((t) => (
+                  <div key={t.scope}>
+                    <h4 className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">
+                      {t.label} <span className="normal-case">(top {t.limit})</span>
+                    </h4>
+                    <ul className="space-y-1">
+                      {t.entries.map((e, i) => (
+                        <li
+                          key={`${e.statKey}-${i}`}
+                          className={`text-sm ${e.isCurrent ? 'bg-amber-100 dark:bg-amber-700/60 -mx-1 px-1 rounded' : ''}`}
+                        >
+                          <div className="flex justify-between gap-2">
+                            <span>
+                              <span className="text-gray-400 dark:text-gray-500 inline-block w-9">{e.rankLabel}.</span>
+                              {e.statLabel}
+                            </span>
+                            <span className="font-medium">{e.value}</span>
+                          </div>
+                          {(e.context || e.extra) && (
+                            <div className="text-xs text-gray-400 dark:text-gray-500 ml-9">
+                              {[e.context, e.extra].filter(Boolean).join(' · ')}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </>
       )}
 
       {(teamAwards.length > 0 || externalHonors.length > 0) && (

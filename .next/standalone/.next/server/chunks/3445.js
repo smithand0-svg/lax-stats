@@ -1,4 +1,4 @@
-exports.id=445,exports.ids=[445],exports.modules={146:(a,b)=>{"use strict";Object.defineProperty(b,"__esModule",{value:!0});var c={createLinkPrefetchPartialError:function(){return f},createUnrenderedSegmentError:function(){return e}};for(var d in c)Object.defineProperty(b,d,{enumerable:!0,get:c[d]});function e(a,b){let c=`Route "${a}": Could not validate that a segment in your UI has instant navigation.`;if(b.length>0){let a=1===b.length?"Dropped segment":"Dropped segments";c+=`
+exports.id=3445,exports.ids=[3445],exports.modules={146:(a,b)=>{"use strict";Object.defineProperty(b,"__esModule",{value:!0});var c={createLinkPrefetchPartialError:function(){return f},createUnrenderedSegmentError:function(){return e}};for(var d in c)Object.defineProperty(b,d,{enumerable:!0,get:c[d]});function e(a,b){let c=`Route "${a}": Could not validate that a segment in your UI has instant navigation.`;if(b.length>0){let a=1===b.length?"Dropped segment":"Dropped segments";c+=`
 
 This segment was dropped from rendering. Issues that would prevent instant navigation will go undetected.
 

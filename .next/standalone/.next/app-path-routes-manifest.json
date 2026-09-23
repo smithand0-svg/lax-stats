@@ -32,13 +32,13 @@
   "/coaching-stats/page": "/coaching-stats",
   "/college-honors/page": "/college-honors",
   "/debug/page": "/debug",
+  "/leaderboard/page": "/leaderboard",
   "/page": "/",
   "/players/[id]/page": "/players/[id]",
+  "/search/page": "/search",
   "/season-awards/page": "/season-awards",
   "/season-history/page": "/season-history",
   "/seasons/[year]/page": "/seasons/[year]",
   "/seasons/page": "/seasons",
-  "/team-stats/page": "/team-stats",
-  "/search/page": "/search",
-  "/leaderboard/page": "/leaderboard"
+  "/team-stats/page": "/team-stats"
 }
