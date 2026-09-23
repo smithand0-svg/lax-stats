@@ -201,6 +201,13 @@ export default async function CoachPage({ params }) {
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
             Record against every opponent faced as head coach. Win % is over all games.
           </p>
+          {matrix.coverage && (
+            <p className="text-sm bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded px-3 py-2 mb-3">
+              Opponent records cover {matrix.coverage.span} only ({matrix.coverage.covered} of{' '}
+              {matrix.coverage.total} seasons as head coach). Other seasons don&apos;t have game-by-game results, so the
+              Total below is not a career record.
+            </p>
+          )}
           <div className="overflow-x-auto mb-8">
             <table className="text-sm border-collapse w-full">
               <thead>
@@ -213,7 +220,14 @@ export default async function CoachPage({ params }) {
                 </tr>
               </thead>
               <tbody>
-                {[...matrix.rows, { opponent: 'Total', ...matrix.totals, isTotal: true }].map((r) => (
+                {[
+                  ...matrix.rows,
+                  {
+                    opponent: matrix.coverage ? `Total (${matrix.coverage.span})` : 'Total',
+                    ...matrix.totals,
+                    isTotal: true,
+                  },
+                ].map((r) => (
                   <tr
                     key={r.opponent + (r.isTotal ? '-total' : '')}
                     className={`border-b border-gray-100 dark:border-gray-800 ${r.isTotal ? 'font-semibold' : ''}`}

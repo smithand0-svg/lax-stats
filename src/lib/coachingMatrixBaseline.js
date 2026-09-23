@@ -9,9 +9,20 @@
 // Seasons before that are covered by this baseline, and ONLY by it, so
 // no game is ever counted twice.
 //
-// Coaches before Mike McComish (Jim Reed, Chad Fredericks, Mike Degens,
-// Brad Lay) have no opponent-level detail in the source, so they have
-// no rows here.
+// 2002-2006 (Chad Fredericks 2002, Jim Reed 2003-2006) added the same
+// day from Game_History.xlsx, game by game, with playoff games
+// identified from its Playoff Game Details tab. 2002-2005 reconcile
+// exactly with Season History. 2006 has 20 games (12-8) in Game History
+// against 13-9 in Season History: two games (one W, one L) have no
+// game-level record, so they are not included. One unscored 2002
+// Sylvania game is excluded, as Season History excludes it too.
+// Opponent spellings were normalized to the names used elsewhere in
+// this file. "Toledo Wolfpack" is kept as written.
+//
+// Seasons with no game-by-game source at all (1990-2001: Brad Lay,
+// Mike Degens, Chad Fredericks 1998-2001, Jim Reed 1995-1997) have no
+// rows. COACHING_MATRIX_COVERAGE below records exactly which seasons
+// each coach's rows cover, so the page can say so when it's partial.
 //
 // One correction to the spreadsheet (2026-09-23): the McComish sheet
 // totaled 76-75 against the program's 76-76. Reconciled game by game
@@ -164,4 +175,59 @@ export const COACHING_MATRIX_BASELINE = [
   ["Mike McComish", "Westlake", 0, 0, 1, 0],
   ["Mike McComish", "Wheeling Cent Cath", 1, 0, 0, 0],
   ["Mike McComish", "Wooster", 0, 1, 0, 0],
+  // 2002-2006, from Game_History.xlsx
+  ["Jim Reed", "Ann Arbor Pioneer", 0, 1, 0, 0],
+  ["Jim Reed", "Chagrin Falls", 2, 0, 0, 0],
+  ["Jim Reed", "Cincinnati Sycamore", 0, 0, 0, 1],
+  ["Jim Reed", "Cleveland Heights", 3, 0, 0, 0],
+  ["Jim Reed", "Culver Military Academy", 1, 0, 0, 0],
+  ["Jim Reed", "Dublin Coffman", 0, 1, 0, 0],
+  ["Jim Reed", "Dublin Jerome", 0, 1, 0, 0],
+  ["Jim Reed", "Hawken School", 1, 2, 0, 0],
+  ["Jim Reed", "Hilliard Darby", 2, 1, 0, 0],
+  ["Jim Reed", "Hilliard Davidson", 1, 0, 0, 0],
+  ["Jim Reed", "Hudson", 0, 1, 0, 1],
+  ["Jim Reed", "Kent Roosevelt", 1, 3, 2, 0],
+  ["Jim Reed", "Massillon Jackson", 2, 0, 1, 0],
+  ["Jim Reed", "Medina", 0, 3, 0, 0],
+  ["Jim Reed", "Mentor", 1, 0, 0, 0],
+  ["Jim Reed", "Olentangy", 3, 1, 0, 0],
+  ["Jim Reed", "Perrysburg", 2, 0, 1, 0],
+  ["Jim Reed", "Shaker Heights", 2, 2, 1, 1],
+  ["Jim Reed", "St. Charles", 3, 1, 0, 0],
+  ["Jim Reed", "St. Francis Toledo", 2, 0, 0, 0],
+  ["Jim Reed", "St. Ignatius (Prep)", 0, 2, 0, 0],
+  ["Jim Reed", "Sylvania Maple Leafs", 3, 1, 0, 0],
+  ["Jim Reed", "Toledo Wolfpack", 3, 0, 0, 0],
+  ["Jim Reed", "University School", 2, 1, 1, 0],
+  ["Jim Reed", "Walsh Jesuit", 3, 1, 0, 1],
+  ["Jim Reed", "Wellington School", 1, 2, 0, 0],
+  ["Jim Reed", "Westerville South", 1, 0, 0, 0],
+  ["Chad Fredericks", "Cleveland Heights", 1, 0, 0, 0],
+  ["Chad Fredericks", "Hilliard Darby", 0, 1, 0, 0],
+  ["Chad Fredericks", "Indian Hill", 0, 1, 0, 0],
+  ["Chad Fredericks", "Medina", 0, 1, 0, 0],
+  ["Chad Fredericks", "Revere", 1, 0, 0, 0],
+  ["Chad Fredericks", "Shaker Heights", 0, 1, 0, 1],
+  ["Chad Fredericks", "St. Charles", 0, 1, 0, 0],
+  ["Chad Fredericks", "Sylvania Maple Leafs", 1, 0, 0, 0],
+  ["Chad Fredericks", "Toledo Wolfpack", 2, 0, 0, 0],
+  ["Chad Fredericks", "University School", 0, 1, 0, 0],
+  ["Chad Fredericks", "Walsh Jesuit", 0, 1, 0, 0],
+  ["Chad Fredericks", "Wellington School", 0, 1, 0, 0],
+  ["Chad Fredericks", "Western Reserve Academy", 0, 1, 0, 0],
 ];
+
+// Seasons each coach's baseline rows cover. Compared on the coach page
+// against that coach's hand-kept head-coach seasons: when some aren't
+// covered, the page notes the span and labels the Total row with it.
+// 2020 is included for Smith because the cancelled season has no games
+// to cover.
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+export const COACHING_MATRIX_COVERAGE = {
+  'Chad Fredericks': [2002],
+  'Jim Reed': range(2003, 2006),
+  'Mike McComish': range(2007, 2014),
+  'Adam Salon': range(2015, 2019),
+  'Andrew Smith': range(2020, 2026),
+};
