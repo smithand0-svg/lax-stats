@@ -1,7 +1,6 @@
 import { pool } from '@/lib/db';
 import FinalizeButton from '@/components/FinalizeButton';
 import AdvanceSeasonButton from '@/components/AdvanceSeasonButton';
-import { BASE_PATH } from '@/lib/basePath';
 import { getUncountedGames } from '@/lib/gameResults';
 
 export const dynamic = 'force-dynamic';
@@ -49,21 +48,7 @@ export default async function AdminSeasonsPage() {
   return (
     <main className="max-w-3xl mx-auto p-8">
       <div className="flex justify-between items-start mb-1">
-        <h1 className="text-2xl font-bold">Season Finalization</h1>
-        <div className="flex items-center gap-4">
-          <a href={`${BASE_PATH}/admin/import`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Import Game Stats
-          </a>
-          <a href={`${BASE_PATH}/admin/awards`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Season Awards
-          </a>
-          <a href={`${BASE_PATH}/admin/college-commitments`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            College Commitments
-          </a>
-          <a href={`${BASE_PATH}/admin/staff`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Coaching Staff
-          </a>
-        </div>
+        <h1 className="text-2xl font-bold">Seasons</h1>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Finalizing a season locks it against admin imports (both individual-stats and team-stats) for the whole

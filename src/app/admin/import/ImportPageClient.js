@@ -111,32 +111,11 @@ export default function ImportPage() {
         return !!resolutions[i];
       }));
 
-  async function handleLogout() {
-    await fetch(`${BASE_PATH}/api/admin/logout`, { method: 'POST' });
-    window.location.href = `${BASE_PATH}/admin/login`;
-  }
 
   return (
     <main className="max-w-4xl mx-auto p-8">
       <div className="flex justify-between items-start mb-2">
         <h1 className="text-2xl font-bold">Import Game Stats</h1>
-        <div className="flex items-center gap-4">
-          <a href={`${BASE_PATH}/admin/seasons`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Season finalization
-          </a>
-          <a href={`${BASE_PATH}/admin/awards`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Season awards
-          </a>
-          <a href={`${BASE_PATH}/admin/college-commitments`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            College Commitments
-          </a>
-          <a href={`${BASE_PATH}/admin/staff`} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Coaching Staff
-          </a>
-          <button onClick={handleLogout} className="text-sm text-gray-500 dark:text-gray-400 underline">
-            Log out
-          </button>
-        </div>
       </div>
 
       <div className="flex gap-2 mb-4">
