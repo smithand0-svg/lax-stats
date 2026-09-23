@@ -221,7 +221,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
           <div className="grid sm:grid-cols-2 gap-8">
             {teamAwards.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Team Awards</h3>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Awards</h3>
                 <table className="text-sm w-full">
                   <tbody>
                     {teamAwards.map((a) => (
@@ -237,7 +237,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
             )}
             {externalHonors.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">External Honors</h3>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Honors</h3>
                 <table className="text-sm w-full">
                   <tbody>
                     {externalHonors.map((h) => (
