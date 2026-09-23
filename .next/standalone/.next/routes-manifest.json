@@ -32,6 +32,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/admin/college-commitments/[id]",
+      "regex": "^/api/admin/college\\-commitments/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/admin/college\\-commitments/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/season-honors/[id]",
       "regex": "^/api/admin/season\\-honors/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -98,6 +106,12 @@
       "namedRegex": "^/admin/awards(?:/)?$"
     },
     {
+      "page": "/admin/college-commitments",
+      "regex": "^/admin/college\\-commitments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/college\\-commitments(?:/)?$"
+    },
+    {
       "page": "/admin/import",
       "regex": "^/admin/import(?:/)?$",
       "routeKeys": {},
@@ -114,6 +128,12 @@
       "regex": "^/admin/seasons(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/seasons(?:/)?$"
+    },
+    {
+      "page": "/api/admin/college-commitments",
+      "regex": "^/api/admin/college\\-commitments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/college\\-commitments(?:/)?$"
     },
     {
       "page": "/api/admin/import/commit",

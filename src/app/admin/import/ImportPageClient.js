@@ -127,6 +127,9 @@ export default function ImportPage() {
           <a href={`${BASE_PATH}/admin/awards`} className="text-sm text-gray-500 dark:text-gray-400 underline">
             Season awards
           </a>
+          <a href={`${BASE_PATH}/admin/college-commitments`} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            College Commitments
+          </a>
           <button onClick={handleLogout} className="text-sm text-gray-500 dark:text-gray-400 underline">
             Log out
           </button>

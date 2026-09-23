@@ -42,6 +42,9 @@ export default async function AdminSeasonsPage() {
           <a href={`${BASE_PATH}/admin/awards`} className="text-sm text-gray-500 dark:text-gray-400 underline">
             Season Awards
           </a>
+          <a href={`${BASE_PATH}/admin/college-commitments`} className="text-sm text-gray-500 dark:text-gray-400 underline">
+            College Commitments
+          </a>
         </div>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
