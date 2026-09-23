@@ -218,6 +218,12 @@
       "namedRegex": "^/search(?:/)?$"
     },
     {
+      "page": "/season-awards",
+      "regex": "^/season\\-awards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/season\\-awards(?:/)?$"
+    },
+    {
       "page": "/season-history",
       "regex": "^/season\\-history(?:/)?$",
       "routeKeys": {},
