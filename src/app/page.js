@@ -32,6 +32,9 @@ export default function Home() {
         <Link href="/team-stats" className="border border-slate-800 dark:border-slate-400 px-4 py-2 rounded">
           Team Stats
         </Link>
+        <Link href="/season-awards" className="border border-slate-800 dark:border-slate-400 px-4 py-2 rounded">
+          Season Awards
+        </Link>
       </div>
     </main>
   );
