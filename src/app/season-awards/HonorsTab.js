@@ -71,6 +71,9 @@ function groupHonors(rows) {
     }
   }
   const regionState = [...byPlayer.values()].sort((a, b) => {
+    // Region Player of the Year sorts first, above 1st Team -- POY
+    // winners are the headline entries for the section.
+    if (a.poy !== b.poy) return a.poy ? -1 : 1;
     const ai = REGION_TIER_ORDER.indexOf(a.regionTier);
     const bi = REGION_TIER_ORDER.indexOf(b.regionTier);
     const aRank = ai === -1 ? REGION_TIER_ORDER.length : ai;
