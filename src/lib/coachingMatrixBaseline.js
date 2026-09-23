@@ -17,7 +17,9 @@
 // game-level record, so they are not included. One unscored 2002
 // Sylvania game is excluded, as Season History excludes it too.
 // Opponent spellings were normalized to the names used elsewhere in
-// this file. "Toledo Wolfpack" is kept as written. The plain "St
+// this file. "Toledo Wolfpack" is its real name
+// (confirmed by Andy): a combined team for Toledo players whose own
+// schools have no lacrosse program. The plain "St
 // Charles" game (4/10/2005, IL DuPage) is St. Charles, Illinois, kept
 // separate from Columbus St. Charles.
 //
