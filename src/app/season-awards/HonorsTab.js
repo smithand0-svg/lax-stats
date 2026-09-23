@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { pool } from '@/lib/db';
 import SeasonPicker from './SeasonPicker';
 
@@ -25,6 +26,20 @@ async function getHonorsForSeason(season) {
   return rows;
 }
 
+// TM-37 landed after this page originally shipped -- coach honors now
+// have somewhere real to attach (staff_id), so they get a real section
+// here instead of staying deferred.
+async function getCoachHonorsForSeason(season) {
+  const { rows } = await pool.query(
+    `SELECT staff_id, player_name AS staff_name, honor_source, honor_label
+     FROM season_honors
+     WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj') AND season_year = $1 AND recipient_type = 'staff'
+     ORDER BY player_name`,
+    [season]
+  );
+  return rows;
+}
+
 function lastName(fullName) {
   const parts = fullName.trim().split(/\s+/);
   return parts[parts.length - 1];
@@ -39,9 +54,9 @@ function lastName(fullName) {
 //      teamers are State-eligible at all).
 //   3. League (CHSL) -- sorted All Catholic, then All League, then
 //      All Academic.
-//   4. Coach honors -- deliberately not built yet (TM-37, no staff
-//      table to attach them to); anything genuinely uncategorized
-//      lands in a small catch-all so nothing is silently dropped.
+// Coach honors (staff_id-linked) are fetched and rendered separately
+// below, in a section of their own, since they're a different
+// recipient type entirely, not part of this player-grouping function.
 function groupHonors(rows) {
   const usaLacrosse = [...rows.filter((r) => r.honor_source === 'USA Lacrosse')].sort((a, b) => {
     const ai = USA_LACROSSE_ORDER.indexOf(a.honor_label);
@@ -104,7 +119,7 @@ export default async function HonorsTab({ season: seasonParam }) {
     return <p className="text-sm text-gray-400">No external honors on record yet.</p>;
   }
   const season = seasonParam && seasons.includes(parseInt(seasonParam, 10)) ? parseInt(seasonParam, 10) : seasons[0];
-  const rows = await getHonorsForSeason(season);
+  const [rows, coachHonors] = await Promise.all([getHonorsForSeason(season), getCoachHonorsForSeason(season)]);
   const { usaLacrosse, regionState, chsl, other } = groupHonors(rows);
 
   return (
@@ -165,6 +180,24 @@ export default async function HonorsTab({ season: seasonParam }) {
               <div key={i}>
                 <span className="font-medium">{h.player_name}</span>
                 {h.position ? ` (${h.position})` : ''} — {h.honor_label}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {coachHonors.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">Coaches</h2>
+          <div className="space-y-1 text-sm">
+            {coachHonors.map((h, i) => (
+              <div key={i}>
+                {h.staff_id ? (
+                  <Link href={`/coaches/${h.staff_id}`} className="font-medium underline">{h.staff_name}</Link>
+                ) : (
+                  <span className="font-medium">{h.staff_name}</span>
+                )}
+                {' '}— {h.honor_source}: {h.honor_label}
               </div>
             ))}
           </div>
