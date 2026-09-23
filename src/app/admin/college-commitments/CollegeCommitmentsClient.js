@@ -43,7 +43,6 @@ export default function CollegeCommitmentsClient() {
   const [form, setForm] = useState({
     playerName: '',
     graduationYear: '',
-    honorYear: '',
     position: '',
     school: '',
     division: 'D3',
@@ -74,11 +73,11 @@ export default function CollegeCommitmentsClient() {
       const res = await fetch(`${BASE_PATH}/api/admin/college-commitments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, honorYear: form.honorYear || form.graduationYear }),
+        body: JSON.stringify({ ...form, honorYear: form.graduationYear }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setForm((f) => ({ ...f, playerName: '', graduationYear: '', honorYear: '', position: '', school: '' }));
+      setForm((f) => ({ ...f, playerName: '', graduationYear: '', position: '', school: '' }));
       await load();
     } catch (err) {
       setError(err.message);
@@ -101,7 +100,7 @@ export default function CollegeCommitmentsClient() {
             name={form.playerName}
             onNameChange={(v) => setForm((f) => ({ ...f, playerName: v }))}
             graduationYear={form.graduationYear}
-            onGraduationYearChange={(v) => setForm((f) => ({ ...f, graduationYear: v, honorYear: f.honorYear || v }))}
+            onGraduationYearChange={(v) => setForm((f) => ({ ...f, graduationYear: v }))}
           />
         </div>
         <select
@@ -130,14 +129,6 @@ export default function CollegeCommitmentsClient() {
         >
           {DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
         </select>
-        <input
-          className={INPUT}
-          style={{ width: '7rem' }}
-          placeholder="Year"
-          inputMode="numeric"
-          value={form.honorYear}
-          onChange={(e) => setForm((f) => ({ ...f, honorYear: e.target.value }))}
-        />
         <button
           onClick={handleAdd}
           disabled={saving || !form.playerName.trim() || !form.school.trim()}
