@@ -19,7 +19,7 @@ export async function GET() {
     return jsonNoStore({ commitments: rows });
   } catch (err) {
     console.error(err);
-    return jsonNoStore({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }
 
@@ -59,6 +59,6 @@ export async function POST(request) {
     return jsonNoStore({ commitment: rows[0] });
   } catch (err) {
     console.error(err);
-    return jsonNoStore({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }

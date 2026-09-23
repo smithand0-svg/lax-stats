@@ -23,7 +23,7 @@ export async function GET(request) {
     return jsonNoStore({ honors: rows });
   } catch (err) {
     console.error(err);
-    return jsonNoStore({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }
 
@@ -67,6 +67,6 @@ export async function POST(request) {
     return jsonNoStore({ honor: rows[0] });
   } catch (err) {
     console.error(err);
-    return jsonNoStore({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }

@@ -31,6 +31,6 @@ export async function POST(request, { params }) {
     return NextResponse.json({ seasonYear: rows[0].season_year, finalizedAt: rows[0].finalized_at });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }

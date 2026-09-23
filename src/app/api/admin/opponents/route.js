@@ -29,6 +29,6 @@ export async function GET() {
     return NextResponse.json({ teamId, opponents, aliases });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }

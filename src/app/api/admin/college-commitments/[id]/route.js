@@ -18,6 +18,6 @@ export async function DELETE(request, { params }) {
     return jsonNoStore({ deleted: true });
   } catch (err) {
     console.error(err);
-    return jsonNoStore({ error: err.message }, { status: 500 });
+    return jsonNoStore({ error: 'Something went wrong. Check the server logs for details.' }, { status: 500 });
   }
 }
