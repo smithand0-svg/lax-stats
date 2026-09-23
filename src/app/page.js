@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <main className="max-w-2xl mx-auto p-8">
