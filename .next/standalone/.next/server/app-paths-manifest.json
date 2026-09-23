@@ -23,12 +23,9 @@
   "/api/admin/team-awards/[id]/route": "app/api/admin/team-awards/[id]/route.js",
   "/api/admin/team-awards/route": "app/api/admin/team-awards/route.js",
   "/admin/awards/page": "app/admin/awards/page.js",
-  "/admin/college-commitments/page": "app/admin/college-commitments/page.js",
-  "/admin/import/page": "app/admin/import/page.js",
-  "/admin/login/page": "app/admin/login/page.js",
   "/admin/seasons/page": "app/admin/seasons/page.js",
   "/admin/staff/page": "app/admin/staff/page.js",
-  "/coaches/[id]/page": "app/coaches/[id]/page.js",
+  "/admin/college-commitments/page": "app/admin/college-commitments/page.js",
   "/coaching-stats/page": "app/coaching-stats/page.js",
   "/college-honors/page": "app/college-honors/page.js",
   "/debug/page": "app/debug/page.js",
@@ -40,5 +37,8 @@
   "/season-history/page": "app/season-history/page.js",
   "/seasons/[year]/page": "app/seasons/[year]/page.js",
   "/seasons/page": "app/seasons/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/admin/import/page": "app/admin/import/page.js",
+  "/coaches/[id]/page": "app/coaches/[id]/page.js",
   "/team-stats/page": "app/team-stats/page.js"
 }

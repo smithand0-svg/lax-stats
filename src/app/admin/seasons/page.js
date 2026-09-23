@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 async function getSeasons() {
   const { rows } = await pool.query(
-    `SELECT season_year, head_coach, division, total_wins, total_losses, finalized_at
+    `SELECT season_year, head_coach, division, total_wins, total_losses, finalized_at,
+            playoff_result, special_note, brothers_cup, league_name, league_finish
      FROM program_seasons
      WHERE team_id = (SELECT id FROM teams WHERE slug = 'sjj')
      ORDER BY season_year DESC`
@@ -20,7 +21,7 @@ async function getSeasons() {
 // and the Leaderboard reads instead of inferring from live data.
 async function getCurrentSeason() {
   const { rows } = await pool.query(
-    `SELECT t.current_season_year, ps.head_coach
+    `SELECT t.current_season_year, ps.head_coach, ps.division
      FROM teams t
      LEFT JOIN program_seasons ps ON ps.team_id = t.id AND ps.season_year = t.current_season_year
      WHERE t.slug = 'sjj'`
@@ -75,6 +76,7 @@ export default async function AdminSeasonsPage() {
           <AdvanceSeasonButton
             currentYear={currentSeason.current_season_year}
             currentHeadCoach={currentSeason.head_coach}
+            currentDivision={currentSeason.division}
           />
         )}
       </div>
@@ -110,7 +112,17 @@ export default async function AdminSeasonsPage() {
                   )}
                 </td>
                 <td className="py-2">
-                  <FinalizeButton seasonYear={s.season_year} finalized={finalized} />
+                  <FinalizeButton
+                    seasonYear={s.season_year}
+                    finalized={finalized}
+                    details={{
+                      playoff_result: s.playoff_result,
+                      special_note: s.special_note,
+                      brothers_cup: s.brothers_cup,
+                      league_finish: s.league_finish,
+                    }}
+                    hasLeague={!!s.league_name}
+                  />
                 </td>
               </tr>
             );

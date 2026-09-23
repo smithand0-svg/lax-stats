@@ -9,11 +9,14 @@ import { BASE_PATH } from '@/lib/basePath';
 // expand-in-place pattern, but this one branches instead of just
 // confirming, since "No" needs an extra piece of information before it
 // can proceed.
-export default function AdvanceSeasonButton({ currentYear, currentHeadCoach }) {
+// TM-36: also asks for the new season's division, prefilled with the
+// current season's, since division is known before the season starts.
+export default function AdvanceSeasonButton({ currentYear, currentHeadCoach, currentDivision }) {
   const router = useRouter();
   const nextYear = currentYear + 1;
   const [stage, setStage] = useState('idle'); // idle | prompt | newCoachName
   const [newCoachName, setNewCoachName] = useState('');
+  const [division, setDivision] = useState(currentDivision != null ? String(currentDivision) : '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,7 +27,7 @@ export default function AdvanceSeasonButton({ currentYear, currentHeadCoach }) {
       const res = await fetch(`${BASE_PATH}/api/admin/seasons/advance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ continuing, newHeadCoach: continuing ? undefined : newCoachName }),
+        body: JSON.stringify({ continuing, newHeadCoach: continuing ? undefined : newCoachName, division }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong.');
@@ -38,9 +41,25 @@ export default function AdvanceSeasonButton({ currentYear, currentHeadCoach }) {
     }
   }
 
+  const divisionField = (
+    <label className="flex items-center gap-2 text-sm w-full mb-2">
+      <span className="text-gray-600 dark:text-gray-400">Division for {nextYear}:</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={division}
+        onChange={(e) => setDivision(e.target.value)}
+        placeholder="e.g. 2"
+        className="w-16 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-transparent text-sm"
+      />
+      <span className="text-xs text-gray-400">optional</span>
+    </label>
+  );
+
   if (stage === 'newCoachName') {
     return (
       <div className="flex items-center gap-2 text-sm flex-wrap">
+        {divisionField}
         <span className="text-gray-600 dark:text-gray-400">New head coach for {nextYear}:</span>
         <input
           type="text"
@@ -72,6 +91,7 @@ export default function AdvanceSeasonButton({ currentYear, currentHeadCoach }) {
   if (stage === 'prompt') {
     return (
       <div className="flex items-center gap-2 text-sm flex-wrap">
+        {divisionField}
         <span className="text-gray-600 dark:text-gray-400">
           Is {currentHeadCoach || 'the current head coach'} continuing as head coach for {nextYear}?
         </span>

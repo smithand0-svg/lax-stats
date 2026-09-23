@@ -34,6 +34,18 @@ export async function POST(request) {
     const continuing = !!body.continuing;
     const newHeadCoach = typeof body.newHeadCoach === 'string' ? body.newHeadCoach.trim() : '';
 
+    // TM-36 point 1: division is known before the season starts, so it's
+    // asked for here alongside the coach question. Optional -- blank
+    // leaves it NULL, same as any other not-yet-known field.
+    const rawDivision = body.division;
+    let division = null;
+    if (rawDivision !== undefined && rawDivision !== null && String(rawDivision).trim() !== '') {
+      division = parseInt(String(rawDivision).trim(), 10);
+      if (!Number.isInteger(division) || division < 1 || String(division) !== String(rawDivision).trim()) {
+        return NextResponse.json({ error: 'Division must be a whole number (e.g. 1 or 2), or left blank.' }, { status: 400 });
+      }
+    }
+
     if (!continuing && !newHeadCoach) {
       return NextResponse.json({ error: 'A new head coach name is required.' }, { status: 400 });
     }
@@ -55,10 +67,14 @@ export async function POST(request) {
     const nextYear = currentYear + 1;
 
     const { rows: currentSeasonRows } = await client.query(
-      `SELECT head_coach FROM program_seasons WHERE team_id = $1 AND season_year = $2`,
+      `SELECT head_coach, league_name FROM program_seasons WHERE team_id = $1 AND season_year = $2`,
       [team.id, currentYear]
     );
     const currentHeadCoach = currentSeasonRows[0]?.head_coach || null;
+    // League affiliation carries forward (e.g. CHSL since 2024) -- the
+    // league RECORD and finish start empty, since the new season hasn't
+    // been played.
+    const currentLeagueName = currentSeasonRows[0]?.league_name || null;
 
     if (continuing && !currentHeadCoach) {
       throw new Error(`No head coach on record for ${currentYear} to carry forward -- use "No" and enter the new coach's name instead.`);
@@ -75,8 +91,8 @@ export async function POST(request) {
     }
 
     await client.query(
-      `INSERT INTO program_seasons (team_id, season_year, head_coach) VALUES ($1, $2, $3)`,
-      [team.id, nextYear, headCoachForNextYear]
+      `INSERT INTO program_seasons (team_id, season_year, head_coach, division, league_name) VALUES ($1, $2, $3, $4, $5)`,
+      [team.id, nextYear, headCoachForNextYear, division, currentLeagueName]
     );
 
     await client.query(
@@ -90,6 +106,7 @@ export async function POST(request) {
       previousYear: currentYear,
       newYear: nextYear,
       headCoach: headCoachForNextYear,
+      division,
     });
   } catch (err) {
     await client.query('ROLLBACK');
