@@ -23,6 +23,7 @@ import {
   getGameBoards,
   getCurrentSeasonYear,
   roundSuffix,
+  rateExtraText,
 } from '@/lib/leaderboardData';
 
 export const ACCOLADE_VIEWS = [
@@ -94,10 +95,7 @@ function collectEntries(scope, playerId, boards, rateBoards, currentSeasonYear, 
       stat,
       rateBoards[stat.key],
       (r) => `${Number(r.value).toFixed(1)}%`,
-      (r) => {
-        const [a, b] = stat.extraValues(r);
-        return `${stat.extraLabels[0]}: ${a}, ${stat.extraLabels[1]}: ${b}`;
-      }
+      (r) => rateExtraText(stat, r)
     )
   );
 

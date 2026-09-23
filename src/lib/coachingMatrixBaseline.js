@@ -12,9 +12,9 @@
 // 2002-2006 (Chad Fredericks 2002, Jim Reed 2003-2006) added the same
 // day from Game_History.xlsx, game by game, with playoff games
 // identified from its Playoff Game Details tab. 2002-2005 reconcile
-// exactly with Season History. 2006 has 20 games (12-8) in Game History
-// against 13-9 in Season History: two games (one W, one L) have no
-// game-level record, so they are not included. One unscored 2002
+// exactly with Season History. 2006 is 20 games, 12-8: Season History
+// originally said 13-9, but Jim Reed's 2008 email (from his scorebooks)
+// confirmed 12-8, and db/041 corrected the Season History row. One unscored 2002
 // Sylvania game is excluded, as Season History excludes it too.
 // Opponent spellings were normalized to the names used elsewhere in
 // this file. "Toledo Wolfpack" is its real name

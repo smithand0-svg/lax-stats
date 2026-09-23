@@ -16,6 +16,7 @@ import {
   getShutouts,
   formatYearRanges,
   roundSuffix,
+  rateExtraText,
 } from '@/lib/leaderboardData';
 
 // This page reads live data that changes every time a game is imported —
@@ -264,7 +265,7 @@ export default async function LeaderboardPage({ searchParams }) {
                 {(rateBoards[stat.key] || []).map((row, idx, arr) => {
                   const tiedCount = arr.filter((r) => r.rnk === row.rnk).length;
                   const rankLabel = tiedCount > 1 ? `T-${row.rnk}` : String(row.rnk);
-                  const [extra1, extra2] = stat.extraValues(row);
+
                   return (
                     <li
                       key={`${row.id || row.player_id}-${row.season_year || ''}-${row.game_date || ''}`}
@@ -274,7 +275,7 @@ export default async function LeaderboardPage({ searchParams }) {
                         <span className="text-gray-400 dark:text-gray-500 w-9 inline-block">{rankLabel}.</span>{' '}
                         <PlayerName row={row} />
                         <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">
-                          <RowContext row={row} /> — {stat.extraLabels[0]}: {extra1}, {stat.extraLabels[1]}: {extra2}
+                          <RowContext row={row} /> — {rateExtraText(stat, row)}
                         </span>
                       </span>
                       <span className="font-medium">{row.value.toFixed(1)}%</span>

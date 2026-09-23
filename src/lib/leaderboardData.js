@@ -1197,6 +1197,44 @@ const STATIC_CAREER_RATE_RECORDS = [
   { player: 'Nate Miller', stat: 'fo_pct', firstYear: 2021, lastYear: 2022, faceoff_wins: 15, faceoff_losses: 17, game_type: 'playoff' },
 ];
 
+// Rate records known ONLY as a stated percentage, with no underlying
+// counts (saves / goals against) on record anywhere. Source: Jim Reed's
+// January 2008 email to Mike McComish, compiled from his own scorebooks,
+// which Andy treats as fact (2026-09-23). Because the counts are
+// unknown, these can't be checked against a board's minimum-shots
+// qualifier -- they are included as stated, by Andy's call. A stated
+// record REPLACES any live-computed row for the same player (career) or
+// player + season (season), since the live data is known to be partial
+// (e.g. Reilly's live data is 2004 only; his stated career is 2002-2004).
+// Combined view only: the source gives no regular/playoff split.
+const STATED_RATE_RECORDS = [
+  {
+    player: 'Mike Reilly', stat: 'save_pct', scope: 'career', firstYear: 2002, lastYear: 2004, pct: 61.5,
+    source: "Jim Reed's 2008 records",
+  },
+  {
+    player: 'Mike Henson', stat: 'save_pct', scope: 'season', season_year: 2005, pct: 64.1,
+    source: "Jim Reed's 2008 records",
+  },
+];
+
+function statedRateRows(scope, statKey, view, resolveStatic) {
+  if (view !== 'combined') return [];
+  return STATED_RATE_RECORDS.filter((r) => r.scope === scope && r.stat === statKey).map((raw) => ({
+    ...resolveStatic({ ...raw, game_type: 'combined' }),
+    value: raw.pct,
+    statedPct: true,
+  }));
+}
+
+// The "Saves: 12, Goals Against: 8" style detail under a rate-stat row.
+// Stated-percentage rows have no counts, so they show their source.
+export function rateExtraText(stat, row) {
+  if (row.statedPct) return `${row.source}, counts not recorded`;
+  const [a, b] = stat.extraValues(row);
+  return `${stat.extraLabels[0]}: ${a}, ${stat.extraLabels[1]}: ${b}`;
+}
+
 const ALL_STAT_SUM = `(goals+assists+shots+shots_on_goal+ground_balls+turnovers+caused_turnovers+faceoff_wins+faceoff_losses+saves+goals_against+personal_fouls+technical_fouls)`;
 const ALL_STAT_SUM_COALESCED = `(COALESCE(goals,0)+COALESCE(assists,0)+COALESCE(shots,0)+COALESCE(shots_on_goal,0)+COALESCE(ground_balls,0)+COALESCE(turnovers,0)+COALESCE(caused_turnovers,0)+COALESCE(faceoff_wins,0)+COALESCE(faceoff_losses,0)+COALESCE(saves,0)+COALESCE(goals_against,0)+COALESCE(personal_fouls,0)+COALESCE(technical_fouls,0))`;
 
@@ -1353,10 +1391,11 @@ export async function getCareerBoards(view, resolvePlayer, limit = 10) {
       }
     );
 
-    const withValue = [...liveWithValue, ...staticSurvivors.values()].filter(
-      (r) => checkQualifier(r, qualifier, numerator, denominator) || isManuallyQualified(r, key, 'career', view)
-    );
-    rateBoards[key] = rankBoard(withValue, limit);
+    const stated = statedRateRows('career', key, view, resolveStatic);
+    const withValue = [...liveWithValue, ...staticSurvivors.values()]
+      .filter((r) => !stated.some((st) => st.id === r.id))
+      .filter((r) => checkQualifier(r, qualifier, numerator, denominator) || isManuallyQualified(r, key, 'career', view));
+    rateBoards[key] = rankBoard([...withValue, ...stated], limit);
   });
 
   return { boards, rateBoards };
@@ -1422,10 +1461,8 @@ export async function getSeasonBoards(view, resolvePlayer, limit = 10) {
     boards[key] = rankBoard([...liveWithValue, ...staticSurvivors.values()], limit);
   });
 
-  // No Season-tier rate-stat static records yet -- the source PDFs don't
-  // give the underlying attempt/shot counts for a single season, only
-  // the final percentage (see the comment on STATIC_SEASON_RECORDS
-  // above). Live-only until that data is available.
+  // Season-tier rate boards are live data plus STATED_RATE_RECORDS
+  // (percentage-only records with no counts, e.g. Mike Henson 2005).
   const rateBoards = {};
   RATE_STATS.forEach(({ key, numerator, denominator, minQualifier }) => {
     const qualifier = minQualifier.season && minQualifier.season[view];
@@ -1436,7 +1473,16 @@ export async function getSeasonBoards(view, resolvePlayer, limit = 10) {
         return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
       })
       .filter((r) => checkQualifier(r, qualifier, numerator, denominator) || isManuallyQualified(r, key, 'season', view));
-    rateBoards[key] = rankBoard(withValue, limit);
+    const stated = statedRateRows('season', key, view, resolveStatic);
+    rateBoards[key] = rankBoard(
+      [
+        ...withValue.filter(
+          (r) => !stated.some((st) => st.id === r.id && Number(st.season_year) === Number(r.season_year))
+        ),
+        ...stated,
+      ],
+      limit
+    );
   });
 
   return { boards, rateBoards };
