@@ -7,7 +7,7 @@ export default function SeasonPicker({ seasons, current }) {
   return (
     <select
       value={current}
-      onChange={(e) => router.push(`/season-awards?tab=honors&season=${e.target.value}`)}
+      onChange={(e) => router.replace(`/season-awards?tab=honors&season=${e.target.value}`)}
       className="border rounded px-3 py-2 text-sm mb-6"
     >
       {seasons.map((y) => (
