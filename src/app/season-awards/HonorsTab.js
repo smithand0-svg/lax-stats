@@ -1,6 +1,7 @@
 import { pool } from '@/lib/db';
 import SeasonPicker from './SeasonPicker';
 
+const USA_LACROSSE_ORDER = ['All-American', 'Academic All-American', 'Bob Scott Award'];
 const REGION_TIER_ORDER = ['1st Team All-Region', '2nd Team All-Region', 'Honorable Mention All-Region'];
 const CHSL_ORDER = ['CHSL - All Catholic', 'CHSL - All League', 'CHSL - All Academic'];
 
@@ -42,7 +43,14 @@ function lastName(fullName) {
 //      table to attach them to); anything genuinely uncategorized
 //      lands in a small catch-all so nothing is silently dropped.
 function groupHonors(rows) {
-  const usaLacrosse = rows.filter((r) => r.honor_source === 'USA Lacrosse');
+  const usaLacrosse = [...rows.filter((r) => r.honor_source === 'USA Lacrosse')].sort((a, b) => {
+    const ai = USA_LACROSSE_ORDER.indexOf(a.honor_label);
+    const bi = USA_LACROSSE_ORDER.indexOf(b.honor_label);
+    const aRank = ai === -1 ? USA_LACROSSE_ORDER.length : ai;
+    const bRank = bi === -1 ? USA_LACROSSE_ORDER.length : bi;
+    if (aRank !== bRank) return aRank - bRank;
+    return lastName(a.player_name).localeCompare(lastName(b.player_name));
+  });
 
   const regionStateRows = rows.filter((r) => r.honor_source === 'OHSLCA - Region' || r.honor_source === 'OHSLCA - State');
   const byPlayer = new Map();
