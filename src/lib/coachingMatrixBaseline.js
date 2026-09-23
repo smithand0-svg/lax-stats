@@ -17,7 +17,9 @@
 // game-level record, so they are not included. One unscored 2002
 // Sylvania game is excluded, as Season History excludes it too.
 // Opponent spellings were normalized to the names used elsewhere in
-// this file. "Toledo Wolfpack" is kept as written.
+// this file. "Toledo Wolfpack" is kept as written. The plain "St
+// Charles" game (4/10/2005, IL DuPage) is St. Charles, Illinois, kept
+// separate from Columbus St. Charles.
 //
 // Seasons with no game-by-game source at all (1990-2001: Brad Lay,
 // Mike Degens, Chad Fredericks 1998-2001, Jim Reed 1995-1997) have no
@@ -194,7 +196,8 @@ export const COACHING_MATRIX_BASELINE = [
   ["Jim Reed", "Olentangy", 3, 1, 0, 0],
   ["Jim Reed", "Perrysburg", 2, 0, 1, 0],
   ["Jim Reed", "Shaker Heights", 2, 2, 1, 1],
-  ["Jim Reed", "St. Charles", 3, 1, 0, 0],
+  ["Jim Reed", "St. Charles", 2, 1, 0, 0],
+  ["Jim Reed", "St. Charles (IL)", 1, 0, 0, 0],
   ["Jim Reed", "St. Francis Toledo", 2, 0, 0, 0],
   ["Jim Reed", "St. Ignatius (Prep)", 0, 2, 0, 0],
   ["Jim Reed", "Sylvania Maple Leafs", 3, 1, 0, 0],
