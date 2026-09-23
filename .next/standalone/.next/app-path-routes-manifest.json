@@ -27,6 +27,9 @@
   "/admin/seasons/page": "/admin/seasons",
   "/admin/staff/page": "/admin/staff",
   "/admin/college-commitments/page": "/admin/college-commitments",
+  "/admin/import/page": "/admin/import",
+  "/admin/login/page": "/admin/login",
+  "/coaches/[id]/page": "/coaches/[id]",
   "/coaching-stats/page": "/coaching-stats",
   "/college-honors/page": "/college-honors",
   "/debug/page": "/debug",
@@ -34,12 +37,9 @@
   "/page": "/",
   "/players/[id]/page": "/players/[id]",
   "/search/page": "/search",
-  "/season-awards/page": "/season-awards",
   "/season-history/page": "/season-history",
-  "/admin/login/page": "/admin/login",
+  "/season-awards/page": "/season-awards",
+  "/seasons/[year]/page": "/seasons/[year]",
   "/seasons/page": "/seasons",
-  "/team-stats/page": "/team-stats",
-  "/admin/import/page": "/admin/import",
-  "/coaches/[id]/page": "/coaches/[id]",
-  "/seasons/[year]/page": "/seasons/[year]"
+  "/team-stats/page": "/team-stats"
 }

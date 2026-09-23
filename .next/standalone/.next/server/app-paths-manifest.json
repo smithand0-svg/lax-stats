@@ -27,6 +27,9 @@
   "/admin/seasons/page": "app/admin/seasons/page.js",
   "/admin/staff/page": "app/admin/staff/page.js",
   "/admin/college-commitments/page": "app/admin/college-commitments/page.js",
+  "/admin/import/page": "app/admin/import/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/coaches/[id]/page": "app/coaches/[id]/page.js",
   "/coaching-stats/page": "app/coaching-stats/page.js",
   "/college-honors/page": "app/college-honors/page.js",
   "/debug/page": "app/debug/page.js",
@@ -34,12 +37,9 @@
   "/page": "app/page.js",
   "/players/[id]/page": "app/players/[id]/page.js",
   "/search/page": "app/search/page.js",
-  "/season-awards/page": "app/season-awards/page.js",
   "/season-history/page": "app/season-history/page.js",
-  "/admin/login/page": "app/admin/login/page.js",
+  "/season-awards/page": "app/season-awards/page.js",
+  "/seasons/[year]/page": "app/seasons/[year]/page.js",
   "/seasons/page": "app/seasons/page.js",
-  "/team-stats/page": "app/team-stats/page.js",
-  "/admin/import/page": "app/admin/import/page.js",
-  "/coaches/[id]/page": "app/coaches/[id]/page.js",
-  "/seasons/[year]/page": "app/seasons/[year]/page.js"
+  "/team-stats/page": "app/team-stats/page.js"
 }
