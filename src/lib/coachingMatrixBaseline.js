@@ -23,8 +23,14 @@
 // Charles" game (4/10/2005, IL DuPage) is St. Charles, Illinois, kept
 // separate from Columbus St. Charles.
 //
-// Seasons with no game-by-game source at all (1990-2001: Brad Lay,
-// Mike Degens, Chad Fredericks 1998-2001, Jim Reed 1995-1997) have no
+// 2001 (Chad Fredericks) added from the original schedule page Andy
+// found: 3-12, matching Season History, all regular season (pre-2002
+// results all count as regular season). One unscored 5/16/2001 Toledo
+// Wolfpack game is excluded. The 4/28/2001 neutral-site St. Charles
+// game was St. Charles, Illinois.
+//
+// Seasons with no game-by-game source at all (1990-2000: Brad Lay,
+// Mike Degens, Chad Fredericks 1998-2000, Jim Reed 1995-1997) have no
 // rows. COACHING_MATRIX_COVERAGE below records exactly which seasons
 // each coach's rows cover, so the page can say so when it's partial.
 //
@@ -208,19 +214,23 @@ export const COACHING_MATRIX_BASELINE = [
   ["Jim Reed", "Walsh Jesuit", 3, 1, 0, 1],
   ["Jim Reed", "Wellington School", 1, 2, 0, 0],
   ["Jim Reed", "Westerville South", 1, 0, 0, 0],
-  ["Chad Fredericks", "Cleveland Heights", 1, 0, 0, 0],
-  ["Chad Fredericks", "Hilliard Darby", 0, 1, 0, 0],
-  ["Chad Fredericks", "Indian Hill", 0, 1, 0, 0],
-  ["Chad Fredericks", "Medina", 0, 1, 0, 0],
-  ["Chad Fredericks", "Revere", 1, 0, 0, 0],
-  ["Chad Fredericks", "Shaker Heights", 0, 1, 0, 1],
-  ["Chad Fredericks", "St. Charles", 0, 1, 0, 0],
-  ["Chad Fredericks", "Sylvania Maple Leafs", 1, 0, 0, 0],
-  ["Chad Fredericks", "Toledo Wolfpack", 2, 0, 0, 0],
-  ["Chad Fredericks", "University School", 0, 1, 0, 0],
-  ["Chad Fredericks", "Walsh Jesuit", 0, 1, 0, 0],
-  ["Chad Fredericks", "Wellington School", 0, 1, 0, 0],
-  ["Chad Fredericks", "Western Reserve Academy", 0, 1, 0, 0],
+  // Chad Fredericks 2001 (from the original schedule page Andy found)
+  // and 2002, combined
+  ["Chad Fredericks", "Cleveland Heights", 1, 1, 0, 0],
+  ["Chad Fredericks", "Culver Military Academy", 0, 1, 0, 0],
+  ["Chad Fredericks", "Hilliard Darby", 0, 2, 0, 0],
+  ["Chad Fredericks", "Indian Hill", 0, 2, 0, 0],
+  ["Chad Fredericks", "Medina", 0, 2, 0, 0],
+  ["Chad Fredericks", "Revere", 2, 0, 0, 0],
+  ["Chad Fredericks", "Shaker Heights", 0, 2, 0, 1],
+  ["Chad Fredericks", "St. Charles", 0, 2, 0, 0],
+  ["Chad Fredericks", "St. Charles (IL)", 0, 1, 0, 0],
+  ["Chad Fredericks", "Sylvania Maple Leafs", 2, 0, 0, 0],
+  ["Chad Fredericks", "Toledo Wolfpack", 3, 0, 0, 0],
+  ["Chad Fredericks", "University School", 0, 2, 0, 0],
+  ["Chad Fredericks", "Walsh Jesuit", 0, 2, 0, 0],
+  ["Chad Fredericks", "Wellington School", 0, 2, 0, 0],
+  ["Chad Fredericks", "Western Reserve Academy", 0, 2, 0, 0],
 ];
 
 // Seasons each coach's baseline rows cover. Compared on the coach page
@@ -230,7 +240,7 @@ export const COACHING_MATRIX_BASELINE = [
 // to cover.
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 export const COACHING_MATRIX_COVERAGE = {
-  'Chad Fredericks': [2002],
+  'Chad Fredericks': [2001, 2002],
   'Jim Reed': range(2003, 2006),
   'Mike McComish': range(2007, 2014),
   'Adam Salon': range(2015, 2019),
