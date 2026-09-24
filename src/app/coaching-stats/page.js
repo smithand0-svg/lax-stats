@@ -128,6 +128,24 @@ async function getStaffIdByName() {
   return map;
 }
 
+// Every coach on staff (any level, any role: head coach, assistant, JV)
+// with the number of distinct seasons they coached, from staff_seasons.
+// Andy flagged this list as under construction: staff_seasons is only as
+// complete as the roles entered so far in admin.
+async function getTotalYearsCoached() {
+  const { rows } = await pool.query(
+    `SELECT s.id, s.first_name, s.last_name,
+            array_agg(DISTINCT ss.season_year) AS years,
+            COUNT(DISTINCT ss.season_year) AS seasons
+     FROM staff s
+     JOIN staff_seasons ss ON ss.staff_id = s.id
+     WHERE s.team_id = (SELECT id FROM teams WHERE slug = 'sjj')
+     GROUP BY s.id, s.first_name, s.last_name
+     ORDER BY s.last_name, s.first_name`
+  );
+  return rows;
+}
+
 // Falls back to plain text for any name that isn't in the staff table
 // yet (e.g. a coach added to program_seasons but never backfilled into
 // staff) -- never a broken link.
@@ -148,6 +166,12 @@ export default async function CoachingStatsPage({ searchParams }) {
   const mostRecentYear = yearRows.rows[0].y;
 
   const bySeasons = rankBoard(careerStats.map((c) => ({ ...c, value: Number(c.seasons) })));
+  // Rows arrive sorted by name, and rankBoard's sort is stable, so ties
+  // stay alphabetical by last name.
+  const byTotalYears =
+    tab === 'seasons'
+      ? rankBoard((await getTotalYearsCoached()).map((c) => ({ ...c, value: Number(c.seasons) })))
+      : [];
 
   let careerWinsBoard = [];
   let winPctBoard = [];
@@ -193,12 +217,29 @@ export default async function CoachingStatsPage({ searchParams }) {
 
       {tab === 'seasons' ? (
         <div>
-          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Seasons Coached</h2>
+          <h2 className="text-lg font-semibold mb-2 border-b pb-1">Years as Head Coach</h2>
           <RankedList
             items={bySeasons}
             renderLabel={(c) => (
               <>
                 <CoachName name={c.head_coach} staffIds={staffIds} />{' '}
+                <span className="text-gray-400 dark:text-gray-500 text-xs">
+                  ({formatCoachYears(c.years, mostRecentYear)})
+                </span>
+              </>
+            )}
+            renderValue={(c) => c.value}
+          />
+
+          <h2 className="text-lg font-semibold mt-10 mb-1 border-b pb-1">Total Years Coached</h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">*This table is currently under construction.</p>
+          <RankedList
+            items={byTotalYears}
+            renderLabel={(c) => (
+              <>
+                <Link href={`/coaches/${c.id}`} className="underline">
+                  {c.first_name} {c.last_name}
+                </Link>{' '}
                 <span className="text-gray-400 dark:text-gray-500 text-xs">
                   ({formatCoachYears(c.years, mostRecentYear)})
                 </span>

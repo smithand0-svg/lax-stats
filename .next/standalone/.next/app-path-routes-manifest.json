@@ -27,6 +27,9 @@
   "/admin/seasons/page": "/admin/seasons",
   "/admin/staff/page": "/admin/staff",
   "/admin/import/page": "/admin/import",
+  "/admin/login/page": "/admin/login",
+  "/admin/awards/page": "/admin/awards",
+  "/coaches/[id]/page": "/coaches/[id]",
   "/coaching-stats/page": "/coaching-stats",
   "/college-honors/page": "/college-honors",
   "/leaderboard/page": "/leaderboard",
@@ -37,8 +40,5 @@
   "/season-history/page": "/season-history",
   "/seasons/[year]/page": "/seasons/[year]",
   "/seasons/page": "/seasons",
-  "/admin/awards/page": "/admin/awards",
-  "/admin/login/page": "/admin/login",
-  "/coaches/[id]/page": "/coaches/[id]",
   "/team-stats/page": "/team-stats"
 }
