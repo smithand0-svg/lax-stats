@@ -3,6 +3,8 @@ import { pool } from '@/lib/db';
 import ViewToggle from '@/components/ViewToggle';
 import { resolveView, gameTypeCondition } from '@/lib/viewFilter';
 import { getPlayerAccolades } from '@/lib/playerAccolades';
+import { RATE_STATS, statedRatesForPlayer } from '@/lib/leaderboardData';
+import { getPlayerLookup, makePlayerResolver } from '@/lib/playerLookup';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +50,41 @@ async function getSeasonBreakdown(id, view) {
     [id]
   );
   return rows;
+}
+
+// TM-44: seasons whose ORIGINAL legacy summary has one half of a rate
+// recorded and the other half missing (faceoff wins but no losses, or
+// saves but no goals against). season_totals turns those blanks into
+// zeros when it splits regular from playoff, which would produce a false
+// rate such as 100%. Checked here against the source table so those
+// cells show a blank instead. Game-imported stats always have both.
+async function getRateGaps(id) {
+  const { rows } = await pool.query(
+    `SELECT season_year,
+            bool_or((faceoff_wins IS NULL) <> (faceoff_losses IS NULL)) AS fo_gap,
+            bool_or((saves IS NULL) <> (goals_against IS NULL)) AS sv_gap
+     FROM season_stat_summaries WHERE player_id = $1
+     GROUP BY season_year`,
+    [id]
+  );
+  const gaps = new Map();
+  rows.forEach((r) => gaps.set(r.season_year ?? 'legacy', { fo_pct: r.fo_gap, save_pct: r.sv_gap }));
+  return gaps;
+}
+
+// Where each rate column sits: right after the counting stat it's built from.
+const RATE_AFTER = { fo_pct: 'faceoff_losses', save_pct: 'goals_against' };
+const RATE_INPUTS = { fo_pct: ['faceoff_wins', 'faceoff_losses'], save_pct: ['saves', 'goals_against'] };
+
+// One rate cell: "58.9%" plus the counts it came from, or null for a
+// blank. A real 0 is real data (0 goals against on real saves is a
+// genuine 100%); only a missing half, or no attempts at all, blanks it.
+function rateCell(stat, row, hasGap) {
+  if (!row || hasGap) return null;
+  const den = stat.denominator(row);
+  if (!den) return null;
+  const num = stat.numerator(row);
+  return { pct: `${((num / den) * 100).toFixed(1)}%`, detail: `${num}/${den}` };
 }
 
 // Player profiles have shown a small amber-badge strip of honors next
@@ -147,6 +184,37 @@ export default async function PlayerProfilePage({ params, searchParams }) {
       ? [combinedCareer, await getSeasonBreakdown(id, view)]
       : await Promise.all([getCareerTotals(id, view), getSeasonBreakdown(id, view)]);
 
+  // TM-44: FO% and Save% columns, shown when the player has any of the
+  // underlying stat (any faceoff, any save or goal against), no minimum.
+  const relevantRates = RATE_STATS.filter((r) => RATE_INPUTS[r.key].some((k) => Number(combinedCareer[k]) > 0));
+  const columns = [];
+  relevantStats.forEach((s) => {
+    columns.push({ ...s, kind: 'count' });
+    relevantRates.filter((r) => RATE_AFTER[r.key] === s.key).forEach((r) => columns.push({ ...r, kind: 'rate' }));
+  });
+  // A rate whose "after" column isn't shown (e.g. saves but never a goal
+  // against) still gets its column, at the end.
+  relevantRates.filter((r) => !columns.some((c) => c.key === r.key)).forEach((r) => columns.push({ ...r, kind: 'rate' }));
+
+  const [rateGaps, playerLookup] = await Promise.all([getRateGaps(id), getPlayerLookup()]);
+  const stated = statedRatesForPlayer(makePlayerResolver(playerLookup), player.id);
+  const statedFor = (key, scope, seasonYear) =>
+    view === 'combined'
+      ? stated.find((r) => r.stat === key && r.scope === scope && (scope === 'career' || Number(r.season_year) === Number(seasonYear)))
+      : null;
+  const anyGap = (key) => [...rateGaps.values()].some((g) => g[key]);
+  const careerRate = (stat) => {
+    const st = statedFor(stat.key, 'career');
+    if (st) return { pct: `${st.pct.toFixed(1)}%`, detail: `${st.firstYear}-${st.lastYear}, ${st.source}` };
+    return rateCell(stat, career, anyGap(stat.key));
+  };
+  const seasonRate = (stat, row) => {
+    const st = statedFor(stat.key, 'season', row.season_year);
+    if (st) return { pct: `${st.pct.toFixed(1)}%`, detail: st.source };
+    return rateCell(stat, row, rateGaps.get(row.season_year ?? 'legacy')?.[stat.key]);
+  };
+
+
   return (
     <main className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold">
@@ -181,12 +249,26 @@ export default async function PlayerProfilePage({ params, searchParams }) {
 
       <h2 className="text-lg font-semibold mt-4 mb-2 border-b pb-1">Career Totals</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {relevantStats.map((s) => (
-          <div key={s.key} className="border rounded p-3">
-            <div className="text-xs text-gray-500 dark:text-gray-400">{s.label}</div>
-            <div className="text-xl font-semibold">{career[s.key] || 0}</div>
-          </div>
-        ))}
+        {columns.map((s) => {
+          if (s.kind === 'count') {
+            return (
+              <div key={s.key} className="border rounded p-3">
+                <div className="text-xs text-gray-500 dark:text-gray-400">{s.label}</div>
+                <div className="text-xl font-semibold">{career[s.key] || 0}</div>
+              </div>
+            );
+          }
+          const r = careerRate(s);
+          return (
+            <div key={s.key} className="border rounded p-3">
+              <div className="text-xs text-gray-500 dark:text-gray-400">{s.label}</div>
+              <div className="text-xl font-semibold" title={r ? undefined : 'Not enough recorded to calculate'}>
+                {r ? r.pct : '—'}
+              </div>
+              {r && <div className="text-xs text-gray-400 dark:text-gray-500">{r.detail}</div>}
+            </div>
+          );
+        })}
       </div>
 
       <h2 className="text-lg font-semibold mt-10 mb-2 border-b pb-1">Season by Season</h2>
@@ -198,7 +280,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
             <thead>
               <tr className="text-left border-b">
                 <th className="py-2 pr-4">Season</th>
-                {relevantStats.map((s) => (
+                {columns.map((s) => (
                   <th key={s.key} className="pr-4">{s.label}</th>
                 ))}
               </tr>
@@ -207,9 +289,21 @@ export default async function PlayerProfilePage({ params, searchParams }) {
               {seasons.map((row, i) => (
                 <tr key={i} className="border-b">
                   <td className="py-2 pr-4 font-medium">{row.season_year ?? 'Legacy'}</td>
-                  {relevantStats.map((s) => (
-                    <td key={s.key} className="pr-4">{row[s.key]}</td>
-                  ))}
+                  {columns.map((s) => {
+                    if (s.kind === 'count') return <td key={s.key} className="pr-4">{row[s.key]}</td>;
+                    const r = seasonRate(s, row);
+                    return (
+                      <td key={s.key} className="pr-4 whitespace-nowrap" title={r ? r.detail : 'Not enough recorded to calculate'}>
+                        {r ? (
+                          <>
+                            {r.pct} <span className="text-xs text-gray-400 dark:text-gray-500">({r.detail})</span>
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>

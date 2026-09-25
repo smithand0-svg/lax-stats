@@ -1227,6 +1227,22 @@ function statedRateRows(scope, statKey, view, resolveStatic) {
   }));
 }
 
+// TM-44: the stated-percentage records belonging to one player, so a
+// player profile shows exactly what the Leaderboard shows for them
+// (e.g. Mike Reilly's 2002-2004 career Save % from Jim Reed's records,
+// not his 2004-only computed number). Resolved the same way the
+// Leaderboard resolves them, including the active-years check.
+export function statedRatesForPlayer(resolvePlayer, playerId) {
+  return STATED_RATE_RECORDS.filter((r) => {
+    const [first, last] = splitName(r.player);
+    const years = r.scope === 'career'
+      ? { first: r.firstYear, last: r.lastYear }
+      : { first: r.season_year, last: r.season_year };
+    const match = resolvePlayer(first, last, undefined, years);
+    return match && String(match.id) === String(playerId);
+  });
+}
+
 // The "Saves: 12, Goals Against: 8" style detail under a rate-stat row.
 // Stated-percentage rows have no counts, so they show their source.
 export function rateExtraText(stat, row) {
