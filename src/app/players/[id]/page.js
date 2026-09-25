@@ -3,7 +3,8 @@ import { pool } from '@/lib/db';
 import ViewToggle from '@/components/ViewToggle';
 import { resolveView, gameTypeCondition } from '@/lib/viewFilter';
 import { getPlayerAccolades } from '@/lib/playerAccolades';
-import { RATE_STATS, statedRatesForPlayer, getRateGapIndex } from '@/lib/leaderboardData';
+import { RATE_STATS, statedRatesForPlayer, getRateGapIndex, getPlayerShutoutCounts } from '@/lib/leaderboardData';
+import { getOpponentLookup, makeCanonicalizer } from '@/lib/opponentLookup';
 import { getPlayerLookup, makePlayerResolver } from '@/lib/playerLookup';
 
 export const dynamic = 'force-dynamic';
@@ -172,11 +173,44 @@ export default async function PlayerProfilePage({ params, searchParams }) {
     columns.push({ ...s, kind: 'count' });
     relevantRates.filter((r) => RATE_AFTER[r.key] === s.key).forEach((r) => columns.push({ ...r, kind: 'rate' }));
   });
+  // (Shutouts column is appended after the rate columns are placed, below.)
   // A rate whose "after" column isn't shown (e.g. saves but never a goal
   // against) still gets its column, at the end.
   relevantRates.filter((r) => !columns.some((c) => c.key === r.key)).forEach((r) => columns.push({ ...r, kind: 'rate' }));
 
-  const [rateGaps, playerLookup] = await Promise.all([getRateGapIndex(), getPlayerLookup()]);
+  const [rateGaps, playerLookup, opponentLookup, gameSeasonRows] = await Promise.all([
+    getRateGapIndex(),
+    getPlayerLookup(),
+    getOpponentLookup(),
+    pool.query(
+      `SELECT DISTINCT g.season_year FROM game_stat_lines gsl JOIN games g ON g.id = gsl.game_id WHERE gsl.player_id = $1`,
+      [id]
+    ),
+  ]);
+
+  // TM-44 part 2: Shutouts column for anyone who ever made a save. Counts
+  // follow the view toggle. A season with game-by-game data, or with a
+  // curated shutout on record, shows its count (0 is real there). Any
+  // other season has no way to know, so it shows a blank, not a 0.
+  const isGoalie = Number(combinedCareer.saves) > 0;
+  const shutoutCounts = isGoalie
+    ? await getPlayerShutoutCounts(player.id, view, makeCanonicalizer(opponentLookup), makePlayerResolver(playerLookup))
+    : new Map();
+  const gameSeasons = new Set(gameSeasonRows.rows.map((r) => Number(r.season_year)));
+  const seasonShutouts = (seasonYear) => {
+    const n = shutoutCounts.get(seasonYear) || shutoutCounts.get(Number(seasonYear));
+    if (n) return n;
+    return gameSeasons.has(Number(seasonYear)) ? 0 : null;
+  };
+  const careerShutouts = [...shutoutCounts.values()].reduce((a, b) => a + b, 0);
+  // A career count of 0 only means something if every season is known;
+  // otherwise a goalie from before game-by-game records would read as
+  // "0 shutouts" when the truth is "unknown".
+  const careerShutoutsKnown = careerShutouts > 0 || seasons.every((row) => seasonShutouts(row.season_year) !== null);
+  if (isGoalie) {
+    const after = ['save_pct', 'goals_against', 'saves'].map((k) => columns.findIndex((c) => c.key === k)).find((i) => i >= 0);
+    columns.splice(after >= 0 ? after + 1 : columns.length, 0, { key: 'shutouts', label: 'Shutouts', kind: 'shutouts' });
+  }
   const stated = statedRatesForPlayer(makePlayerResolver(playerLookup), player.id);
   const statedFor = (key, scope, seasonYear) =>
     view === 'combined'
@@ -238,6 +272,16 @@ export default async function PlayerProfilePage({ params, searchParams }) {
               </div>
             );
           }
+          if (s.kind === 'shutouts') {
+            return (
+              <div key={s.key} className="border rounded p-3">
+                <div className="text-xs text-gray-500 dark:text-gray-400">{s.label}</div>
+                <div className="text-xl font-semibold" title={careerShutoutsKnown ? undefined : 'No game-by-game record for these seasons'}>
+                  {careerShutoutsKnown ? careerShutouts : '—'}
+                </div>
+              </div>
+            );
+          }
           const r = careerRate(s);
           return (
             <div key={s.key} className="border rounded p-3">
@@ -271,6 +315,14 @@ export default async function PlayerProfilePage({ params, searchParams }) {
                   <td className="py-2 pr-4 font-medium">{row.season_year ?? 'Legacy'}</td>
                   {columns.map((s) => {
                     if (s.kind === 'count') return <td key={s.key} className="pr-4">{row[s.key]}</td>;
+                    if (s.kind === 'shutouts') {
+                      const n = seasonShutouts(row.season_year);
+                      return (
+                        <td key={s.key} className="pr-4" title={n === null ? 'No game-by-game record for this season' : undefined}>
+                          {n === null ? '—' : n}
+                        </td>
+                      );
+                    }
                     const r = seasonRate(s, row);
                     return (
                       <td key={s.key} className="pr-4 whitespace-nowrap" title={r ? r.detail : 'Not enough recorded to calculate'}>
