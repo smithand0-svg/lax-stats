@@ -3,7 +3,7 @@ import { pool } from '@/lib/db';
 import ViewToggle from '@/components/ViewToggle';
 import { resolveView, gameTypeCondition } from '@/lib/viewFilter';
 import { getPlayerAccolades } from '@/lib/playerAccolades';
-import { RATE_STATS, statedRatesForPlayer } from '@/lib/leaderboardData';
+import { RATE_STATS, statedRatesForPlayer, getRateGapIndex } from '@/lib/leaderboardData';
 import { getPlayerLookup, makePlayerResolver } from '@/lib/playerLookup';
 
 export const dynamic = 'force-dynamic';
@@ -50,26 +50,6 @@ async function getSeasonBreakdown(id, view) {
     [id]
   );
   return rows;
-}
-
-// TM-44: seasons whose ORIGINAL legacy summary has one half of a rate
-// recorded and the other half missing (faceoff wins but no losses, or
-// saves but no goals against). season_totals turns those blanks into
-// zeros when it splits regular from playoff, which would produce a false
-// rate such as 100%. Checked here against the source table so those
-// cells show a blank instead. Game-imported stats always have both.
-async function getRateGaps(id) {
-  const { rows } = await pool.query(
-    `SELECT season_year,
-            bool_or((faceoff_wins IS NULL) <> (faceoff_losses IS NULL)) AS fo_gap,
-            bool_or((saves IS NULL) <> (goals_against IS NULL)) AS sv_gap
-     FROM season_stat_summaries WHERE player_id = $1
-     GROUP BY season_year`,
-    [id]
-  );
-  const gaps = new Map();
-  rows.forEach((r) => gaps.set(r.season_year ?? 'legacy', { fo_pct: r.fo_gap, save_pct: r.sv_gap }));
-  return gaps;
 }
 
 // Where each rate column sits: right after the counting stat it's built from.
@@ -196,13 +176,13 @@ export default async function PlayerProfilePage({ params, searchParams }) {
   // against) still gets its column, at the end.
   relevantRates.filter((r) => !columns.some((c) => c.key === r.key)).forEach((r) => columns.push({ ...r, kind: 'rate' }));
 
-  const [rateGaps, playerLookup] = await Promise.all([getRateGaps(id), getPlayerLookup()]);
+  const [rateGaps, playerLookup] = await Promise.all([getRateGapIndex(), getPlayerLookup()]);
   const stated = statedRatesForPlayer(makePlayerResolver(playerLookup), player.id);
   const statedFor = (key, scope, seasonYear) =>
     view === 'combined'
       ? stated.find((r) => r.stat === key && r.scope === scope && (scope === 'career' || Number(r.season_year) === Number(seasonYear)))
       : null;
-  const anyGap = (key) => [...rateGaps.values()].some((g) => g[key]);
+  const anyGap = (key) => rateGaps.careerHasGap(key, player.id);
   const careerRate = (stat) => {
     const st = statedFor(stat.key, 'career');
     if (st) return { pct: `${st.pct.toFixed(1)}%`, detail: `${st.firstYear}-${st.lastYear}, ${st.source}` };
@@ -211,7 +191,7 @@ export default async function PlayerProfilePage({ params, searchParams }) {
   const seasonRate = (stat, row) => {
     const st = statedFor(stat.key, 'season', row.season_year);
     if (st) return { pct: `${st.pct.toFixed(1)}%`, detail: st.source };
-    return rateCell(stat, row, rateGaps.get(row.season_year ?? 'legacy')?.[stat.key]);
+    return rateCell(stat, row, rateGaps.seasonHasGap(stat.key, player.id, row.season_year));
   };
 
 

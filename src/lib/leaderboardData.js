@@ -1227,6 +1227,38 @@ function statedRateRows(scope, statKey, view, resolveStatic) {
   }));
 }
 
+// TM-44: seasons whose ORIGINAL legacy summary (season_stat_summaries)
+// has one half of a rate recorded and the other half missing: faceoff
+// wins with no recorded losses, or saves with no recorded goals against.
+// season_totals fills those blanks with 0 when it splits regular from
+// playoff, which would produce a false rate (e.g. 100%). Every rate
+// surface (Leaderboard boards, Accolades, player profiles) checks this
+// one index so they all blank the same seasons. Game-imported stats
+// always record both halves and never appear here.
+const RATE_GAP_COLUMNS = { fo_pct: ['faceoff_wins', 'faceoff_losses'], save_pct: ['saves', 'goals_against'] };
+
+export async function getRateGapIndex() {
+  const { rows } = await pool.query(
+    `SELECT player_id, season_year,
+            bool_or((faceoff_wins IS NULL) <> (faceoff_losses IS NULL)) AS fo_pct,
+            bool_or((saves IS NULL) <> (goals_against IS NULL)) AS save_pct
+     FROM season_stat_summaries
+     GROUP BY player_id, season_year
+     HAVING bool_or((faceoff_wins IS NULL) <> (faceoff_losses IS NULL))
+         OR bool_or((saves IS NULL) <> (goals_against IS NULL))`
+  );
+  const seasons = new Map(); // "playerId:year" -> { fo_pct, save_pct }
+  const careers = { fo_pct: new Set(), save_pct: new Set() }; // player ids with any gap
+  rows.forEach((r) => {
+    seasons.set(`${r.player_id}:${r.season_year ?? 'legacy'}`, { fo_pct: r.fo_pct, save_pct: r.save_pct });
+    Object.keys(RATE_GAP_COLUMNS).forEach((k) => r[k] && careers[k].add(String(r.player_id)));
+  });
+  return {
+    seasonHasGap: (statKey, playerId, seasonYear) => !!seasons.get(`${playerId}:${seasonYear ?? 'legacy'}`)?.[statKey],
+    careerHasGap: (statKey, playerId) => careers[statKey]?.has(String(playerId)) || false,
+  };
+}
+
 // TM-44: the stated-percentage records belonging to one player, so a
 // player profile shows exactly what the Leaderboard shows for them
 // (e.g. Mike Reilly's 2002-2004 career Save % from Jim Reed's records,
@@ -1387,13 +1419,16 @@ export async function getCareerBoards(view, resolvePlayer, limit = 10) {
   });
 
   const rateBoards = {};
+  const rateGaps = await getRateGapIndex();
   RATE_STATS.forEach(({ key, numerator, denominator, minQualifier }) => {
     const qualifier = minQualifier.career && minQualifier.career[view];
     if (!qualifier) return;
-    const liveWithValue = rows.map((r) => {
-      const denom = denominator(r);
-      return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
-    });
+    const liveWithValue = rows
+      .filter((r) => !rateGaps.careerHasGap(key, r.id))
+      .map((r) => {
+        const denom = denominator(r);
+        return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
+      });
 
     const staticSurvivors = new Map();
     STATIC_CAREER_RATE_RECORDS.filter((r) => r.stat === key && (view === 'combined' || r.game_type === view)).forEach(
@@ -1480,10 +1515,12 @@ export async function getSeasonBoards(view, resolvePlayer, limit = 10) {
   // Season-tier rate boards are live data plus STATED_RATE_RECORDS
   // (percentage-only records with no counts, e.g. Mike Henson 2005).
   const rateBoards = {};
+  const rateGaps = await getRateGapIndex();
   RATE_STATS.forEach(({ key, numerator, denominator, minQualifier }) => {
     const qualifier = minQualifier.season && minQualifier.season[view];
     if (!qualifier) return;
     const withValue = rows
+      .filter((r) => !rateGaps.seasonHasGap(key, r.id, r.season_year))
       .map((r) => {
         const denom = denominator(r);
         return { ...r, value: denom > 0 ? (numerator(r) / denom) * 100 : 0 };
