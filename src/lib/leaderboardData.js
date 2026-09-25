@@ -1669,6 +1669,13 @@ export async function getGameBoards(view, canonicalizeOpponent, resolvePlayer, l
 // starter and a backup, same as the static data below). Matched against
 // static entries by opponent + season only (no exact date on the static
 // side -- see the comment on STATIC_SHUTOUTS above).
+// TM-44: a shutout is a game where the TEAM allowed 0 goals, credited to
+// each goalie who made at least one save in it. The old rule (any
+// player row with goals_against = 0) credited every field player, since
+// only goalies are ever scored on, and never checked the team's score,
+// so a backup's clean fourth quarter in a loss also counted. Team goals
+// allowed come from the team-totals import first, falling back to the
+// sum of the individual stat lines.
 export async function getShutouts(view, canonicalizeOpponent, resolvePlayer) {
   const { rows: liveRaw } = await pool.query(
     `SELECT p.id AS player_id, p.first_name, p.last_name,
@@ -1676,8 +1683,11 @@ export async function getShutouts(view, canonicalizeOpponent, resolvePlayer) {
      FROM game_stat_lines gsl
      JOIN games g ON g.id = gsl.game_id
      JOIN players p ON p.id = gsl.player_id
+     LEFT JOIN team_game_stats tgs ON tgs.game_id = g.id
      WHERE g.team_id = (SELECT id FROM teams WHERE slug = 'sjj')
-       AND gsl.goals_against = 0
+       AND gsl.saves > 0
+       AND COALESCE(tgs.goals_against,
+                    (SELECT SUM(x.goals_against) FROM game_stat_lines x WHERE x.game_id = g.id)) = 0
        AND ${gameTypeCondition(view, 'g')}`
   );
 
@@ -1696,8 +1706,10 @@ export async function getShutouts(view, canonicalizeOpponent, resolvePlayer) {
       round: r.round,
       game_type: r.game_type,
       saves: 0,
+      playerIds: [],
     };
     existing.players.push(`${r.first_name} ${r.last_name}`);
+    existing.playerIds.push(String(r.player_id));
     existing.saves += Number(r.saves || 0);
     liveByGame.set(gameKey, existing);
   });
@@ -1714,6 +1726,27 @@ export async function getShutouts(view, canonicalizeOpponent, resolvePlayer) {
     );
 
   return [...liveShutouts, ...staticShutouts].sort((a, b) => b.saves - a.saves || a.season_year - b.season_year);
+}
+
+// TM-44: one player's shutouts per season, for the profile's Shutouts
+// column, built from getShutouts so the profile and the Leaderboard
+// count the same games. Live shutouts carry real player ids. Curated
+// static ones are stored by name and resolved with the season as
+// context (refuse-to-guess on shared names still applies).
+export async function getPlayerShutoutCounts(playerId, view, canonicalizeOpponent, resolvePlayer) {
+  const all = await getShutouts(view, canonicalizeOpponent, resolvePlayer);
+  const counts = new Map();
+  const pid = String(playerId);
+  all.forEach((so) => {
+    const mine = so.playerIds
+      ? so.playerIds.includes(pid)
+      : so.players.some((name) => {
+          const m = resolvePlayer(...splitName(name), undefined, { first: so.season_year, last: so.season_year });
+          return m && String(m.id) === pid;
+        });
+    if (mine) counts.set(so.season_year, (counts.get(so.season_year) || 0) + 1);
+  });
+  return counts;
 }
 
 export function splitName(fullName) {
